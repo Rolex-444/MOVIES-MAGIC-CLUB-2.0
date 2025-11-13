@@ -82,17 +82,6 @@ async def admin_dashboard(request: Request):
 # ADD MOVIE
 # ============================================
 
-async def admin_add_movie_page(request: Request):
-    """Show add movie form"""
-    if not check_admin_auth(request):
-        return RedirectResponse("/admin", status_code=302)
-    
-    return templates.TemplateResponse("admin_add_movie.html", {
-        "request": request,
-        "success": None,
-        "error": None
-    })
-
 async def admin_add_movie_post(
     request: Request,
     title: str = Form(...),
@@ -116,16 +105,27 @@ async def admin_add_movie_post(
         from main import bot
         from io import BytesIO
         
-        # Send photo to admin to get file_id
-        admin_id = request.session.get("admin_user_id", list(ADMIN_IDS)[0] if ADMIN_IDS else 0)
+        # Get admin ID from ADMIN_IDS
+        from config import ADMIN_IDS
+        admin_id = ADMIN_IDS[0] if ADMIN_IDS else 0
         
+        # Send photo to admin to get file_id
         sent_message = await bot.send_photo(
             chat_id=admin_id,
             photo=BytesIO(poster_data),
             caption=f"Poster for: {title}"
         )
         
-        poster_file_id = sent_message.photo[-1].file_id
+        # Fix: Handle different Pyrogram photo object structures
+        if hasattr(sent_message.photo, 'file_id'):
+            # Direct file_id (Pyrogram 2.x)
+            poster_file_id = sent_message.photo.file_id
+        elif isinstance(sent_message.photo, list) and len(sent_message.photo) > 0:
+            # List of photo sizes (older versions)
+            poster_file_id = sent_message.photo[-1].file_id
+        else:
+            # Fallback - use any available photo
+            raise Exception("Unable to get poster file_id from Telegram")
         
         # Parse genres
         genres_list = [g.strip() for g in genres.split(",")]
@@ -145,9 +145,9 @@ async def admin_add_movie_post(
         }
         
         # Save to database
-        movie_id = await db.add_movie(movie_doc)
+        result = await db.movies.insert_one(movie_doc)
         
-        print(f"✅ Movie added via dashboard: {title}")
+        print(f"✅ Movie added via dashboard: {title} (ID: {result.inserted_id})")
         
         return templates.TemplateResponse("admin_add_movie.html", {
             "request": request,
@@ -157,11 +157,14 @@ async def admin_add_movie_post(
         
     except Exception as e:
         print(f"❌ Error adding movie: {e}")
+        import traceback
+        traceback.print_exc()
         return templates.TemplateResponse("admin_add_movie.html", {
             "request": request,
             "success": None,
             "error": f"❌ Error: {str(e)}"
         })
+        
 
 # ============================================
 # VIEW ALL MOVIES
