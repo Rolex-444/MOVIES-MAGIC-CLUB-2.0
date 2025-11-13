@@ -1,9 +1,11 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 from datetime import datetime
+import os
+from config import MONGO_URI
 
 class Database:
-    def __init__(self, mongo_uri):
-        self.client = AsyncIOMotorClient(mongo_uri)
+    def __init__(self):
+        self.client = AsyncIOMotorClient(MONGO_URI)
         self.db = self.client.moviebot
         self.movies = self.db.movies
         self.users = self.db.users
@@ -25,6 +27,12 @@ class Database:
         movies = await self.movies.find().sort("added_at", -1).limit(limit).to_list(length=limit)
         return movies
 
-def get_database(mongo_uri):
-    return Database(mongo_uri)
+# Singleton instance
+_db_instance = None
+
+def get_database():
+    global _db_instance
+    if _db_instance is None:
+        _db_instance = Database()
+    return _db_instance
     
