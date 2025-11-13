@@ -11,15 +11,13 @@ WEBHOOK_URL = os.getenv("WEBHOOK_URL", "")
 ADMIN_IDS = [int(id.strip()) for id in os.getenv("ADMIN_IDS").split(",")]
 MONGO_URI = os.getenv("MONGO_URI")
 
-# Shortlink configuration
+# Shortlink configuration (NEW)
 SHORTLINK_API = os.getenv("SHORTLINK_API", "")
 SHORTLINK_URL = os.getenv("SHORTLINK_URL", "")
-
-# Verification limits
-FREE_VIDEO_LIMIT = 3  # Free movies before verification
-VERIFY_TOKEN_TIMEOUT = 604800  # 7 days in seconds
-
-# Bot username (for verification links)
 BOT_USERNAME = os.getenv("BOT_USERNAME", "")
+
+# Verification limits (NEW)
+FREE_VIDEO_LIMIT = int(os.getenv("FREE_VIDEO_LIMIT", 3))
+VERIFY_TOKEN_TIMEOUT = int(os.getenv("VERIFY_TOKEN_TIMEOUT", 604800))  # 7 days
 
 print("✅ Config loaded")
