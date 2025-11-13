@@ -97,6 +97,7 @@ async def admin_add_movie_post(
     request: Request,
     title: str = Form(...),
     year: int = Form(...),
+    language: str = Form(...),  # NEW: Language field
     genres: str = Form(...),
     quality: str = Form(...),
     description: str = Form(...),
@@ -123,10 +124,10 @@ async def admin_add_movie_post(
         sent_message = await bot.send_photo(
             chat_id=admin_id,
             photo=BytesIO(poster_data),
-            caption=f"Poster for: {title}"
+            caption=f"Poster for: {title} ({language})"
         )
         
-        # FIX: Get file_id directly (Pyrogram 2.x)
+        # Get file_id directly (Pyrogram 2.x)
         poster_file_id = sent_message.photo.file_id
         
         # Parse genres
@@ -136,6 +137,7 @@ async def admin_add_movie_post(
         movie_doc = {
             "title": title,
             "year": year,
+            "language": language,  # NEW: Save language
             "genres": genres_list,
             "quality": quality,
             "description": description,
@@ -149,11 +151,11 @@ async def admin_add_movie_post(
         # Save to database
         result = await db.movies.insert_one(movie_doc)
         
-        print(f"✅ Movie added via dashboard: {title} (ID: {result.inserted_id})")
+        print(f"✅ Movie added: {title} ({language}) - ID: {result.inserted_id}")
         
         return templates.TemplateResponse("admin_add_movie.html", {
             "request": request,
-            "success": f"✅ Movie '{title}' added successfully!",
+            "success": f"✅ Movie '{title}' ({language}) added successfully!",
             "error": None
         })
         
@@ -206,4 +208,4 @@ async def admin_delete_movie(request: Request, movie_id: str):
     except Exception as e:
         print(f"❌ Delete error: {e}")
         return JSONResponse({"success": False, "error": str(e)})
-    
+        
