@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Movie - Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f7fafc;
+            color: #2d3748;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            font-size: 28px;
+            font-weight: 800;
+        }
+        
+        .navbar-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .navbar-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .navbar-links a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        
+        .page-title {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 30px;
+        }
+        
+        .form-card {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+        
+        .alert {
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            font-weight: 700;
+            text-align: center;
+        }
+        
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 2px solid #68d391;
+        }
+        
+        .alert-error {
+            background: #fed7d7;
+            color: #c53030;
+            border: 2px solid #fc8181;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: #2d3748;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        textarea.form-input {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .file-upload {
+            border: 3px dashed #cbd5e0;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f7fafc;
+        }
+        
+        .file-upload:hover {
+            border-color: #667eea;
+            background: #edf2f7;
+        }
+        
+        .file-upload-icon {
+            font-size: 64px;
+            margin-bottom: 15px;
+        }
+        
+        .file-upload-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: #4a5568;
+            margin-bottom: 8px;
+        }
+        
+        .file-upload-hint {
+            font-size: 14px;
+            color: #a0aec0;
+            font-weight: 600;
+        }
+        
+        .btn-submit {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 20px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">🎬 MOVIE MAGIC CLUB</div>
+        <div class="navbar-links">
+            <a href="/admin/dashboard">📊 Dashboard</a>
+            <a href="/admin/movies">🎬 Movies</a>
+            <a href="/admin/logout">🚪 Logout</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <h1 class="page-title">➕ Add New Movie</h1>
+        
+        <div class="form-card">
+            {% if success %}
+            <div class="alert alert-success">{{ success }}</div>
+            {% endif %}
+            
+            {% if error %}
+            <div class="alert alert-error">{{ error }}</div>
+            {% endif %}
+            
+            <form method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label class="form-label">🎬 Movie Title</label>
+                    <input type="text" name="title" class="form-input" placeholder="Enter movie title" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">📅 Year</label>
+                        <input type="number" name="year" class="form-input" placeholder="2024" min="1900" max="2030" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">📺 Quality</label>
+                        <select name="quality" class="form-input" required>
+                            <option value="480p">480p</option>
+                            <option value="720p">720p</option>
+                            <option value="1080p" selected>1080p</option>
+                            <option value="4K">4K</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">🎭 Genres (comma separated)</label>
+                    <input type="text" name="genres" class="form-input" placeholder="Action, Drama, Thriller" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">📝 Description</label>
+                    <textarea name="description" class="form-input" placeholder="Enter movie description..." required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">🎬 Lulu Stream Link</label>
+                    <input type="url" name="lulu_link" class="form-input" placeholder="https://lulustream.com/..." required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">⬇️ HT FileSharing Link</label>
+                    <input type="url" name="ht_link" class="form-input" placeholder="https://htfilesharing.com/..." required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">🖼️ Poster Image</label>
+                    <div class="file-upload" onclick="document.getElementById('poster').click()">
+                        <div class="file-upload-icon">📤</div>
+                        <div class="file-upload-text">Click to Upload Poster</div>
+                        <div class="file-upload-hint">JPG or PNG • Max 5MB</div>
+                        <input type="file" id="poster" name="poster" accept="image/*" style="display: none;" required>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-submit">🎬 Add Movie</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
