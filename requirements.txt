@@ -1,7 +1,8 @@
 pyrogram==2.0.106
-tgcrypto
+tgcrypto==1.2.5
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 motor==3.5.1
 pymongo==4.6.3
 python-dotenv==1.0.0
+aiohttp==3.9.1
