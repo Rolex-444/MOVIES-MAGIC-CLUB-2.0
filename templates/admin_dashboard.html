@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Movie Bot Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f7fafc;
+            color: #2d3748;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            font-size: 28px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .navbar-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .navbar-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .navbar-links a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        
+        .page-title {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 30px;
+            color: #2d3748;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            transition: all 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+        
+        .stat-card.purple { border-left: 6px solid #667eea; }
+        .stat-card.blue { border-left: 6px solid #4299e1; }
+        .stat-card.green { border-left: 6px solid #48bb78; }
+        
+        .stat-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .stat-value {
+            font-size: 64px;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card.purple .stat-value { color: #667eea; }
+        .stat-card.blue .stat-value { color: #4299e1; }
+        .stat-card.green .stat-value { color: #48bb78; }
+        
+        .stat-label {
+            font-size: 16px;
+            font-weight: 700;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .actions-section {
+            margin-bottom: 40px;
+        }
+        
+        .section-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: #2d3748;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .recent-section {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+        
+        .movie-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .movie-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+        
+        .movie-item:hover {
+            background: #edf2f7;
+            transform: translateX(5px);
+        }
+        
+        .movie-emoji {
+            font-size: 36px;
+        }
+        
+        .movie-info {
+            flex: 1;
+        }
+        
+        .movie-title {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+        
+        .movie-meta {
+            font-size: 14px;
+            font-weight: 600;
+            color: #718096;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #a0aec0;
+        }
+        
+        .empty-icon {
+            font-size: 72px;
+            margin-bottom: 20px;
+        }
+        
+        .empty-text {
+            font-size: 20px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            🎬 MOVIE MAGIC CLUB
+        </div>
+        <div class="navbar-links">
+            <a href="/admin/dashboard">📊 Dashboard</a>
+            <a href="/admin/add-movie">➕ Add Movie</a>
+            <a href="/admin/movies">🎬 All Movies</a>
+            <a href="/admin/logout">🚪 Logout</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <h1 class="page-title">📊 Dashboard</h1>
+        
+        <div class="stats-grid">
+            <div class="stat-card purple">
+                <div class="stat-icon">🎬</div>
+                <div class="stat-value">{{ total_movies }}</div>
+                <div class="stat-label">Total Movies</div>
+            </div>
+            
+            <div class="stat-card blue">
+                <div class="stat-icon">👥</div>
+                <div class="stat-value">{{ total_users }}</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+            
+            <div class="stat-card green">
+                <div class="stat-icon">👁️</div>
+                <div class="stat-value">{{ total_views }}</div>
+                <div class="stat-label">Total Views</div>
+            </div>
+        </div>
+        
+        <div class="actions-section">
+            <h2 class="section-title">⚡ Quick Actions</h2>
+            <div class="action-buttons">
+                <a href="/admin/add-movie" class="btn btn-primary">➕ Add New Movie</a>
+                <a href="/admin/movies" class="btn btn-primary">📋 View All Movies</a>
+            </div>
+        </div>
+        
+        <div class="recent-section">
+            <h2 class="section-title">🎬 Recent Movies</h2>
+            
+            {% if recent_movies %}
+            <div class="movie-list">
+                {% for movie in recent_movies %}
+                <div class="movie-item">
+                    <div class="movie-emoji">🎥</div>
+                    <div class="movie-info">
+                        <div class="movie-title">{{ movie.title }}</div>
+                        <div class="movie-meta">
+                            {{ movie.year }} • {{ ', '.join(movie.genres) }} • {{ movie.quality }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <div class="empty-text">No movies yet! Add your first movie.</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
