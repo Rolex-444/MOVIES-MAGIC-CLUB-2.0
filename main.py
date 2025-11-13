@@ -253,7 +253,6 @@ async def search_movie(client, message):
         await message.reply_text(f"😕 No results for: `{query}`")
         return
     
-    # Show first movie
     movie = movies[0]
     caption = (
         f"🎬 **{movie['title']}** ({movie.get('year', 'N/A')})\n\n"
@@ -269,24 +268,23 @@ async def search_movie(client, message):
         ]
     ])
     
-    # Try to send with file_id, if fails, download and resend
+    # Try with poster
     try:
         await message.reply_photo(
             photo=movie['poster_file_id'],
             caption=caption,
             reply_markup=buttons
         )
-        print(f"✅ Sent: {movie['title']}")
+        print(f"✅ Sent with poster: {movie['title']}")
     except Exception as e:
-        print(f"⚠️ File ID failed: {e}")
-        # Send text only as fallback
+        print(f"⚠️ Poster failed: {e}")
+        # Send without poster BUT WITH BUTTONS!
         await message.reply_text(
-            f"{caption}\n\n"
-            f"🎬 [Watch Now]({movie['lulu_stream_link']})\n"
-            f"⬇️ [Download]({movie['htfilesharing_link']})",
-            disable_web_page_preview=False
+            caption,
+            reply_markup=buttons
         )
-        print(f"✅ Sent (text-only): {movie['title']}")
+        print(f"✅ Sent without poster: {movie['title']}")
+            
         
 # ============================================
 # FASTAPI
