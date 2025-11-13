@@ -68,7 +68,7 @@ async def admin_dashboard(request: Request):
         total_views += movie.get('views', 0)
     
     # Get recent movies (last 5)
-    recent_movies = await db.movies.find().sort("added_at", -1).limit(5).to_list(length=5)
+    recent_movies = await db.movies.find().sort("_id", -1).limit(5).to_list(length=5)
     
     return templates.TemplateResponse("admin_dashboard.html", {
         "request": request,
@@ -81,6 +81,17 @@ async def admin_dashboard(request: Request):
 # ============================================
 # ADD MOVIE
 # ============================================
+
+async def admin_add_movie_page(request: Request):
+    """Show add movie form"""
+    if not check_admin_auth(request):
+        return RedirectResponse("/admin", status_code=302)
+    
+    return templates.TemplateResponse("admin_add_movie.html", {
+        "request": request,
+        "success": None,
+        "error": None
+    })
 
 async def admin_add_movie_post(
     request: Request,
@@ -106,7 +117,6 @@ async def admin_add_movie_post(
         from io import BytesIO
         
         # Get admin ID from ADMIN_IDS
-        from config import ADMIN_IDS
         admin_id = ADMIN_IDS[0] if ADMIN_IDS else 0
         
         # Send photo to admin to get file_id
@@ -116,16 +126,8 @@ async def admin_add_movie_post(
             caption=f"Poster for: {title}"
         )
         
-        # Fix: Handle different Pyrogram photo object structures
-        if hasattr(sent_message.photo, 'file_id'):
-            # Direct file_id (Pyrogram 2.x)
-            poster_file_id = sent_message.photo.file_id
-        elif isinstance(sent_message.photo, list) and len(sent_message.photo) > 0:
-            # List of photo sizes (older versions)
-            poster_file_id = sent_message.photo[-1].file_id
-        else:
-            # Fallback - use any available photo
-            raise Exception("Unable to get poster file_id from Telegram")
+        # FIX: Get file_id directly (Pyrogram 2.x)
+        poster_file_id = sent_message.photo.file_id
         
         # Parse genres
         genres_list = [g.strip() for g in genres.split(",")]
@@ -164,7 +166,6 @@ async def admin_add_movie_post(
             "success": None,
             "error": f"❌ Error: {str(e)}"
         })
-        
 
 # ============================================
 # VIEW ALL MOVIES
@@ -176,7 +177,7 @@ async def admin_movies_page(request: Request):
         return RedirectResponse("/admin", status_code=302)
     
     # Get all movies
-    movies = await db.movies.find().sort("added_at", -1).to_list(length=None)
+    movies = await db.movies.find().sort("_id", -1).to_list(length=None)
     
     return templates.TemplateResponse("admin_movies.html", {
         "request": request,
@@ -205,3 +206,4 @@ async def admin_delete_movie(request: Request, movie_id: str):
     except Exception as e:
         print(f"❌ Delete error: {e}")
         return JSONResponse({"success": False, "error": str(e)})
+    
