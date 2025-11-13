@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Movies - Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f7fafc;
+            color: #2d3748;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            font-size: 28px;
+            font-weight: 800;
+        }
+        
+        .navbar-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .navbar-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .navbar-links a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .page-title {
+            font-size: 36px;
+            font-weight: 800;
+        }
+        
+        .btn-add {
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 800;
+            transition: all 0.3s;
+        }
+        
+        .btn-add:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .movies-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+        
+        .search-bar {
+            padding: 25px;
+            border-bottom: 2px solid #edf2f7;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead {
+            background: #f7fafc;
+        }
+        
+        th {
+            padding: 20px;
+            text-align: left;
+            font-weight: 800;
+            font-size: 14px;
+            color: #2d3748;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        td {
+            padding: 20px;
+            border-bottom: 1px solid #edf2f7;
+            font-weight: 600;
+        }
+        
+        tbody tr {
+            transition: all 0.3s;
+        }
+        
+        tbody tr:hover {
+            background: #f7fafc;
+        }
+        
+        .movie-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+        
+        .movie-meta {
+            font-size: 14px;
+            color: #718096;
+        }
+        
+        .badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 800;
+            display: inline-block;
+        }
+        
+        .badge-quality {
+            background: #667eea;
+            color: white;
+        }
+        
+        .views {
+            font-size: 18px;
+            font-weight: 800;
+            color: #48bb78;
+        }
+        
+        .btn-delete {
+            padding: 10px 20px;
+            background: #f56565;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-delete:hover {
+            background: #e53e3e;
+            transform: scale(1.05);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+        }
+        
+        .empty-icon {
+            font-size: 96px;
+            margin-bottom: 20px;
+        }
+        
+        .empty-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: #2d3748;
+        }
+        
+        .empty-text {
+            font-size: 18px;
+            color: #718096;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+        
+        .movie-emoji {
+            font-size: 36px;
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 20px 30px;
+            background: #48bb78;
+            color: white;
+            border-radius: 12px;
+            font-weight: 800;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .toast.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="toast" id="toast">✅ Movie deleted successfully!</div>
+    
+    <nav class="navbar">
+        <div class="navbar-brand">🎬 MOVIE MAGIC CLUB</div>
+        <div class="navbar-links">
+            <a href="/admin/dashboard">📊 Dashboard</a>
+            <a href="/admin/add-movie">➕ Add Movie</a>
+            <a href="/admin/movies">🎬 Movies</a>
+            <a href="/admin/logout">🚪 Logout</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="header">
+            <h1 class="page-title">🎬 All Movies ({{ movies|length }})</h1>
+            <a href="/admin/add-movie" class="btn-add">➕ Add Movie</a>
+        </div>
+        
+        <div class="movies-card">
+            <div class="search-bar">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    class="search-input" 
+                    placeholder="🔍 Search movies by title, genre, or year..."
+                    onkeyup="filterMovies()"
+                >
+            </div>
+            
+            {% if movies %}
+            <div class="table-container">
+                <table id="moviesTable">
+                    <thead>
+                        <tr>
+                            <th>🎬 Movie</th>
+                            <th>📅 Year</th>
+                            <th>🎭 Genres</th>
+                            <th>📺 Quality</th>
+                            <th>👁️ Views</th>
+                            <th>🗑️ Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for movie in movies %}
+                        <tr data-movie-id="{{ movie._id }}">
+                            <td>
+                                <div class="movie-emoji">🎥</div>
+                            </td>
+                            <td>
+                                <div class="movie-title">{{ movie.title }}</div>
+                            </td>
+                            <td>
+                                <span class="movie-meta">{{ movie.year }}</span>
+                            </td>
+                            <td>
+                                <span class="movie-meta">{{ ', '.join(movie.genres) }}</span>
+                            </td>
+                            <td>
+                                <span class="badge badge-quality">{{ movie.quality }}</span>
+                            </td>
+                            <td>
+                                <span class="views">{{ movie.views }}</span>
+                            </td>
+                            <td>
+                                <button 
+                                    class="btn-delete" 
+                                    onclick="deleteMovie('{{ movie._id }}', '{{ movie.title }}')"
+                                >
+                                    🗑️ Delete
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <div class="empty-title">No Movies Yet</div>
+                <div class="empty-text">Add your first movie to get started!</div>
+                <a href="/admin/add-movie" class="btn-add">➕ Add First Movie</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <script>
+        function filterMovies() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const table = document.getElementById('moviesTable');
+            const rows = table.getElementsByTagName('tr');
+            
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                const text = row.textContent.toLowerCase();
+                
+                if (text.includes(filter)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        }
+        
+        async function deleteMovie(movieId, movieTitle) {
+            if (!confirm(`Are you sure you want to delete "${movieTitle}"?\n\nThis action cannot be undone!`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/admin/delete-movie/${movieId}`, {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Remove row from table
+                    const row = document.querySelector(`tr[data-movie-id="${movieId}"]`);
+                    row.style.transition = 'all 0.3s';
+                    row.style.opacity = '0';
+                    row.style.transform = 'translateX(-20px)';
+                    
+                    setTimeout(() => {
+                        row.remove();
+                        showToast('✅ Movie deleted successfully!');
+                        
+                        // Update count in title
+                        const count = document.querySelectorAll('#moviesTable tbody tr').length;
+                        document.querySelector('.page-title').textContent = `🎬 All Movies (${count})`;
+                        
+                        // Show empty state if no movies left
+                        if (count === 0) {
+                            location.reload();
+                        }
+                    }, 300);
+                } else {
+                    alert('❌ Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('❌ Failed to delete movie. Please try again.');
+                console.error(error);
+            }
+        }
+        
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
