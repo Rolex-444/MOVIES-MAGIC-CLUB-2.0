@@ -1,73 +1,116 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 import uvicorn
 import os
-import asyncio
-from config import WEBHOOK_URL
+from pyrogram import Client, filters
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from config import BOT_TOKEN, API_ID, API_HASH, ADMIN_IDS, MONGO_URI
 from database import get_database
-from handlers.webhook import process_webhook
 
 app = FastAPI()
-
-# Initialize database
 db = get_database()
 
-@app.get("/")
-@app.head("/")
-@app.get("/health")
-@app.head("/health")
-async def health():
-    """Health check endpoint"""
-    return {"status": "healthy", "bot": "movie-bot"}
+# Pyrogram client - MUCH FASTER!
+bot = Client(
+    "moviebot",
+    api_id=API_ID,
+    api_hash=API_HASH,
+    bot_token=BOT_TOKEN,
+    in_memory=True  # No session file needed
+)
 
-@app.post("/webhook/{token}")
-async def webhook(token: str, request: Request):
-    """Handle Telegram webhook updates"""
-    try:
-        update = await request.json()
-        return await process_webhook(update)
-    except Exception as e:
-        print(f"❌ Webhook error: {e}")
-        import traceback
-        traceback.print_exc()
-        return {"ok": False, "error": str(e)}
+# ============================================
+# BOT COMMANDS - INSTANT RESPONSE!
+# ============================================
 
-async def set_webhook_background():
-    """Set webhook in background (non-blocking)"""
-    await asyncio.sleep(3)  # Wait for server to start
+@bot.on_message(filters.command("start"))
+async def start(client, message):
+    """Start command - FAST!"""
+    user_id = message.from_user.id
+    is_admin = user_id in ADMIN_IDS
     
-    if WEBHOOK_URL:
-        try:
-            from config import BOT_TOKEN
-            from utils.helpers import set_webhook
-            
-            base_url = WEBHOOK_URL.rstrip('/')
-            webhook_url = f"{base_url}/webhook/{BOT_TOKEN}"
-            
-            result = await set_webhook(webhook_url)
-            
-            if result and result.get("ok"):
-                print(f"✅ Webhook set: {webhook_url}")
-            else:
-                print(f"⚠️ Webhook failed: {result}")
-        except Exception as e:
-            print(f"⚠️ Webhook setup error: {e}")
+    if is_admin:
+        text = (
+            "🎬 **Movie Bot - Admin**\n\n"
+            "✅ Bot online\n"
+            "✅ Fast responses!\n\n"
+            "/addmovie - Add movie\n"
+            "/test - Test bot"
+        )
+    else:
+        text = "🎬 **Movie Bot**\n\nType movie name to search!"
+    
+    await message.reply_text(text)
+
+@bot.on_message(filters.command("test"))
+async def test(client, message):
+    """Test command"""
+    total = await db.movies.count_documents({})
+    await message.reply_text(
+        f"✅ **Test**\n\n"
+        f"🤖 Bot: Online\n"
+        f"🎬 Movies: {total}\n"
+        f"👤 ID: `{message.from_user.id}`"
+    )
+
+@bot.on_message(filters.command("ping"))
+async def ping(client, message):
+    """Ping command"""
+    await message.reply_text("🏓 Pong! Super fast!")
+
+@bot.on_message(filters.text & filters.private & ~filters.command(["start", "test", "ping"]))
+async def search(client, message):
+    """Search movies - INSTANT!"""
+    query = message.text.strip()
+    print(f"🔍 Search: {query}")
+    
+    movies = await db.search_movies(query)
+    
+    if not movies:
+        await message.reply_text(f"😕 No results for: `{query}`")
+        return
+    
+    # Show first movie
+    movie = movies[0]
+    caption = (
+        f"🎬 **{movie['title']}** ({movie.get('year', 'N/A')})\n\n"
+        f"🎭 {', '.join(movie.get('genres', []))}\n"
+        f"📺 {movie.get('quality', 'HD')}\n\n"
+        f"📝 {movie.get('description', 'No description')}"
+    )
+    
+    buttons = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("🎬 Watch", url=movie['lulu_stream_link']),
+            InlineKeyboardButton("⬇️ Download", url=movie['htfilesharing_link'])
+        ]
+    ])
+    
+    await message.reply_photo(
+        photo=movie['poster_file_id'],
+        caption=caption,
+        reply_markup=buttons
+    )
+    print(f"✅ Sent: {movie['title']}")
+
+# ============================================
+# FASTAPI ROUTES
+# ============================================
+
+@app.get("/")
+@app.get("/health")
+async def health():
+    return {"status": "healthy", "bot": "movie-bot"}
 
 @app.on_event("startup")
 async def startup():
-    """Initialize bot on startup - NON-BLOCKING"""
-    print("✅ Bot initialized")
+    """Start Pyrogram bot"""
+    await bot.start()
+    print("✅ Pyrogram bot started - FAST MODE!")
     print("🔌 Listening on port 8080")
-    
-    # Set webhook in background task (non-blocking)
-    asyncio.create_task(set_webhook_background())
 
 @app.on_event("shutdown")
 async def shutdown():
-    """Cleanup on shutdown"""
-    try:
-        from utils.helpers import close_session
-        await close_session()
-        print("✅ Bot stopped gracefully")
-    except Exception as e:
-        print(f"⚠️ Shutdown error: {e}")
-                
+    """Stop Pyrogram bot"""
+    await bot.stop()
+    print("✅ Bot stopped")
+    
