@@ -1,13 +1,25 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from starlette.middleware.sessions import SessionMiddleware
 import uvicorn
 import os
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from config import BOT_TOKEN, API_ID, API_HASH, ADMIN_IDS, MONGO_URI
+from config import BOT_TOKEN, API_ID, API_HASH, ADMIN_IDS, SECRET_KEY
 from database import get_database
 
 app = FastAPI()
 db = get_database()
+
+# Add session middleware for admin login
+app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
+
+# Mount static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Templates
+templates = Jinja2Templates(directory="templates")
 
 # Pyrogram client
 bot = Client(
@@ -18,11 +30,8 @@ bot = Client(
     in_memory=True
 )
 
-# Upload state storage
-upload_states = {}
-
 # ============================================
-# BOT COMMANDS
+# BOT COMMANDS (KEEP YOUR EXISTING BOT CODE)
 # ============================================
 
 @bot.on_message(filters.command("start") & filters.private)
@@ -38,11 +47,10 @@ async def start(client, message):
             "**Commands:**\n"
             "/addmovie - Add new movie\n"
             "/listmovies - View all movies\n"
-            "/cancel - Cancel upload\n"
             "/test - Test bot"
         )
     else:
-        text = "🎬 **Movie Bot**\n\nType movie name to search!"
+        text = "🎬 **Movie Magic Club**\n\nType movie name to search!"
     
     await message.reply_text(text)
 
@@ -58,190 +66,13 @@ async def test(client, message):
         f"👤 ID: `{message.from_user.id}`"
     )
 
-@bot.on_message(filters.command("ping") & filters.private)
-async def ping(client, message):
-    """Ping command"""
-    await message.reply_text("🏓 Pong! Lightning fast!")
+# ... (KEEP ALL YOUR OTHER BOT COMMANDS)
 
 # ============================================
-# ADMIN - ADD MOVIE WIZARD
+# MOVIE SEARCH (EXISTING CODE)
 # ============================================
 
-@bot.on_message(filters.command("addmovie") & filters.private)
-async def addmovie(client, message):
-    """Start movie upload wizard"""
-    user_id = message.from_user.id
-    
-    if user_id not in ADMIN_IDS:
-        await message.reply_text("❌ Admin only!")
-        return
-    
-    upload_states[user_id] = {
-        "step": "title",
-        "data": {}
-    }
-    
-    await message.reply_text(
-        "🎬 **Movie Upload Wizard**\n\n"
-        "📝 **Step 1/8:** Send movie title\n\n"
-        "Example: `Pushpa 2`\n\n"
-        "💡 /cancel to stop"
-    )
-    print(f"✅ Upload started by {user_id}")
-
-@bot.on_message(filters.command("cancel") & filters.private)
-async def cancel(client, message):
-    """Cancel upload"""
-    user_id = message.from_user.id
-    
-    if user_id in upload_states:
-        del upload_states[user_id]
-        await message.reply_text("❌ Upload cancelled")
-        print(f"❌ Upload cancelled by {user_id}")
-    else:
-        await message.reply_text("No active upload")
-
-@bot.on_message(filters.command("listmovies") & filters.private)
-async def listmovies(client, message):
-    """List all movies"""
-    user_id = message.from_user.id
-    
-    if user_id not in ADMIN_IDS:
-        await message.reply_text("❌ Admin only!")
-        return
-    
-    movies = await db.get_all_movies(limit=20)
-    
-    if not movies:
-        await message.reply_text("📭 No movies yet!\n\nUse /addmovie to add first movie")
-        return
-    
-    text = "🎬 **Recent Movies**\n\n"
-    for i, movie in enumerate(movies, 1):
-        text += f"{i}. **{movie['title']}** ({movie['year']}) - {movie.get('quality', 'HD')}\n"
-    
-    text += f"\n📊 Total: {len(movies)}"
-    await message.reply_text(text)
-
-# ============================================
-# UPLOAD WIZARD HANDLER
-# ============================================
-
-@bot.on_message(filters.private & ~filters.command(["start", "test", "ping", "addmovie", "cancel", "listmovies"]))
-async def handle_messages(client, message):
-    """Handle upload steps or search"""
-    user_id = message.from_user.id
-    
-    # Check if in upload mode
-    if user_id in upload_states:
-        await handle_upload_step(client, message)
-    else:
-        # Regular search
-        await search_movie(client, message)
-
-async def handle_upload_step(client, message):
-    """Process upload wizard steps"""
-    user_id = message.from_user.id
-    state = upload_states[user_id]
-    step = state["step"]
-    data = state["data"]
-    
-    try:
-        if step == "title":
-            data["title"] = message.text
-            state["step"] = "year"
-            await message.reply_text("📅 **Step 2/8:** Year\n\nExample: `2024`")
-        
-        elif step == "year":
-            year = int(message.text)
-            if year < 1900 or year > 2030:
-                await message.reply_text("❌ Invalid year. Try again:")
-                return
-            data["year"] = year
-            state["step"] = "genres"
-            await message.reply_text("🎭 **Step 3/8:** Genres (comma-separated)\n\nExample: `Action, Drama`")
-        
-        elif step == "genres":
-            data["genres"] = [g.strip() for g in message.text.split(",")]
-            state["step"] = "quality"
-            await message.reply_text("📺 **Step 4/8:** Quality\n\nExample: `1080p`")
-        
-        elif step == "quality":
-            data["quality"] = message.text
-            state["step"] = "lulu_link"
-            await message.reply_text("🎬 **Step 5/8:** Lulu Stream link\n\nExample: `https://lulustream.com/v/xyz`")
-        
-        elif step == "lulu_link":
-            if not message.text.startswith("http"):
-                await message.reply_text("❌ Invalid URL. Try again:")
-                return
-            data["lulu_link"] = message.text
-            state["step"] = "ht_link"
-            await message.reply_text("⬇️ **Step 6/8:** HTFileSharing link\n\nExample: `https://htfilesharing.com/file/abc`")
-        
-        elif step == "ht_link":
-            if not message.text.startswith("http"):
-                await message.reply_text("❌ Invalid URL. Try again:")
-                return
-            data["ht_link"] = message.text
-            state["step"] = "poster"
-            await message.reply_text("🖼️ **Step 7/8:** Send poster image")
-        
-        elif step == "poster":
-            if message.photo:
-                data["poster_file_id"] = message.photo.file_id
-                state["step"] = "description"
-                await message.reply_text("📝 **Step 8/8:** Description (2-3 lines)")
-            else:
-                await message.reply_text("❌ Please send an image")
-        
-        elif step == "description":
-            data["description"] = message.text
-            
-            # Save to database
-            movie_doc = {
-                "title": data["title"],
-                "year": data["year"],
-                "genres": data["genres"],
-                "quality": data["quality"],
-                "lulu_stream_link": data["lulu_link"],
-                "htfilesharing_link": data["ht_link"],
-                "poster_file_id": data["poster_file_id"],
-                "description": data["description"],
-                "added_by": user_id
-            }
-            
-            movie_id = await db.add_movie(movie_doc)
-            
-            # Send confirmation
-            caption = (
-                f"✅ **Movie Added!**\n\n"
-                f"🎬 **{data['title']}** ({data['year']})\n"
-                f"🎭 {', '.join(data['genres'])}\n"
-                f"📺 {data['quality']}\n\n"
-                f"📝 {data['description']}\n\n"
-                f"🆔 ID: `{movie_id}`\n"
-                f"✨ Movie is live!"
-            )
-            
-            await message.reply_photo(
-                photo=data["poster_file_id"],
-                caption=caption
-            )
-            
-            del upload_states[user_id]
-            print(f"✅ Movie added: {data['title']}")
-    
-    except ValueError as e:
-        await message.reply_text(f"❌ Invalid input. Try again:")
-    except Exception as e:
-        await message.reply_text(f"❌ Error: {str(e)}\n\nType /cancel")
-        print(f"❌ Upload error: {e}")
-
-# ============================================
-# MOVIE SEARCH
-# ============================================
-
+@bot.on_message(filters.text & filters.private & ~filters.command(["start", "test", "addmovie", "listmovies", "cancel"]))
 async def search_movie(client, message):
     """Search and show movie"""
     query = message.text.strip()
@@ -284,10 +115,9 @@ async def search_movie(client, message):
             reply_markup=buttons
         )
         print(f"✅ Sent without poster: {movie['title']}")
-            
-        
+
 # ============================================
-# FASTAPI
+# FASTAPI ROUTES (Health Check)
 # ============================================
 
 @app.get("/")
@@ -295,13 +125,81 @@ async def search_movie(client, message):
 @app.get("/health")
 @app.head("/health")
 async def health():
+    """Health check endpoint"""
     return {"status": "healthy", "bot": "movie-bot"}
+
+# ============================================
+# ADMIN ROUTES (Import from admin_routes.py)
+# ============================================
+
+from admin_routes import (
+    admin_login_page,
+    admin_login_post,
+    admin_logout,
+    admin_dashboard,
+    admin_add_movie_page,
+    admin_add_movie_post,
+    admin_movies_page,
+    admin_delete_movie
+)
+
+# Admin Login
+@app.get("/admin", response_class=HTMLResponse)
+async def get_admin_login(request: Request):
+    return await admin_login_page(request)
+
+@app.post("/admin/login")
+async def post_admin_login(request: Request, username: str = Form(...), password: str = Form(...)):
+    return await admin_login_post(request, username, password)
+
+@app.get("/admin/logout")
+async def get_admin_logout(request: Request):
+    return await admin_logout(request)
+
+# Admin Dashboard
+@app.get("/admin/dashboard", response_class=HTMLResponse)
+async def get_admin_dashboard(request: Request):
+    return await admin_dashboard(request)
+
+# Add Movie
+@app.get("/admin/add-movie", response_class=HTMLResponse)
+async def get_admin_add_movie(request: Request):
+    return await admin_add_movie_page(request)
+
+@app.post("/admin/add-movie")
+async def post_admin_add_movie(
+    request: Request,
+    title: str = Form(...),
+    year: int = Form(...),
+    genres: str = Form(...),
+    quality: str = Form(...),
+    description: str = Form(...),
+    lulu_link: str = Form(...),
+    ht_link: str = Form(...),
+    poster: UploadFile = File(...)
+):
+    return await admin_add_movie_post(request, title, year, genres, quality, description, lulu_link, ht_link, poster)
+
+# View All Movies
+@app.get("/admin/movies", response_class=HTMLResponse)
+async def get_admin_movies(request: Request):
+    return await admin_movies_page(request)
+
+# Delete Movie
+@app.post("/admin/delete-movie/{movie_id}")
+async def post_admin_delete_movie(request: Request, movie_id: str):
+    return await admin_delete_movie(request, movie_id)
+
+# ============================================
+# STARTUP & SHUTDOWN
+# ============================================
 
 @app.on_event("startup")
 async def startup():
     """Start Pyrogram bot"""
     await bot.start()
     print("✅ Pyrogram bot started - FAST MODE!")
+    print("✅ Admin dashboard: /admin")
     print("🔌 Listening on port 8080")
 
 @app.on_event("shutdown")
