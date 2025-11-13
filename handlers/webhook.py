@@ -3,6 +3,7 @@ from handlers.admin import (
     cmd_addmovie, cmd_cancel, cmd_listmovies,
     handle_upload_steps, is_user_uploading
 )
+from handlers.search import search_movies
 from config import ADMIN_IDS
 
 async def process_webhook(update):
@@ -14,7 +15,7 @@ async def process_webhook(update):
     user_id = msg["from"]["id"]
     chat_id = msg["chat"]["id"]
     
-    # Check if user is in upload process
+    # Check if user is in upload process (admin)
     if is_user_uploading(user_id):
         await handle_upload_steps(msg, user_id, chat_id)
         return {"ok": True}
@@ -42,4 +43,11 @@ async def process_webhook(update):
             elif command == "listmovies":
                 await cmd_listmovies(msg, user_id, chat_id)
     
+    # Handle text messages (movie search)
+    elif "text" in msg:
+        query = msg["text"].strip()
+        # Search for movies
+        await search_movies(msg, user_id, chat_id, query)
+    
     return {"ok": True}
+    
