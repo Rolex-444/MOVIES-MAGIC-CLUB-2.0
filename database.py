@@ -17,7 +17,7 @@ class Database:
         self.users = self.db.users
         print("✅ Database connected")
     
-    # Movie methods
+    # Movie methods (keep existing - no changes)
     async def add_movie(self, movie_data):
         movie_data['added_at'] = datetime.now(IST)
         movie_data['views'] = 0
@@ -38,17 +38,21 @@ class Database:
         from bson import ObjectId
         return await self.movies.find_one({"_id": ObjectId(movie_id)})
     
-    # User verification methods
+    # FIXED User verification methods
     def get_today_start(self):
-        """Get today's 12:00 AM IST"""
+        """Get today's 12:00 AM IST - ALWAYS timezone-aware"""
         now_ist = datetime.now(IST)
         return now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    def get_now_ist(self):
+        """Get current IST time - ALWAYS timezone-aware"""
+        return datetime.now(IST)
     
     async def get_user_data(self, user_id: int) -> Optional[Dict]:
         """Get user data, create if doesn't exist"""
         user = await self.users.find_one({"user_id": user_id})
         if not user:
-            now_ist = datetime.now(IST)
+            now_ist = self.get_now_ist()
             new_user = {
                 "user_id": user_id,
                 "joined_date": now_ist,
@@ -71,13 +75,21 @@ class Database:
             return
         
         last_reset = user_data.get('last_reset')
-        if not last_reset or last_reset < self.get_today_start():
-            now_ist = datetime.now(IST)
-            await self.users.update_one(
-                {"user_id": user_id},
-                {"$set": {"video_attempts": 0, "last_reset": now_ist}}
-            )
-            logger.info(f"🔄 Reset attempts for user {user_id}")
+        today_start = self.get_today_start()
+        
+        # Handle both timezone-aware and naive datetimes
+        if last_reset:
+            # Make sure last_reset is timezone-aware
+            if last_reset.tzinfo is None:
+                last_reset = last_reset.replace(tzinfo=IST)
+            
+            if last_reset < today_start:
+                now_ist = self.get_now_ist()
+                await self.users.update_one(
+                    {"user_id": user_id},
+                    {"$set": {"video_attempts": 0, "last_reset": now_ist}}
+                )
+                logger.info(f"🔄 Reset attempts for user {user_id}")
     
     async def can_user_watch_movie(self, user_id: int) -> bool:
         """Check if user can watch movies"""
@@ -91,7 +103,12 @@ class Database:
         if user_data.get("is_verified"):
             verify_expiry = user_data.get("verify_expiry")
             if verify_expiry:
-                now_ist = datetime.now(IST)
+                now_ist = self.get_now_ist()
+                
+                # Make verify_expiry timezone-aware if needed
+                if verify_expiry.tzinfo is None:
+                    verify_expiry = verify_expiry.replace(tzinfo=IST)
+                
                 if now_ist < verify_expiry:
                     return True
                 else:
@@ -124,14 +141,21 @@ class Database:
         # Check if verified
         if user_data.get("is_verified"):
             verify_expiry = user_data.get("verify_expiry")
-            if verify_expiry and datetime.now(IST) < verify_expiry:
-                return False
+            if verify_expiry:
+                now_ist = self.get_now_ist()
+                
+                # Make verify_expiry timezone-aware if needed
+                if verify_expiry.tzinfo is None:
+                    verify_expiry = verify_expiry.replace(tzinfo=IST)
+                
+                if now_ist < verify_expiry:
+                    return False
         
         return user_data.get("video_attempts", 0) >= FREE_VIDEO_LIMIT
     
     async def set_verification_token(self, user_id: int, token: str) -> bool:
         """Set verification token"""
-        now_ist = datetime.now(IST)
+        now_ist = self.get_now_ist()
         expiry = now_ist + timedelta(seconds=VERIFY_TOKEN_TIMEOUT)
         result = await self.users.update_one(
             {"user_id": user_id},
@@ -141,24 +165,29 @@ class Database:
     
     async def verify_token(self, token: str) -> Optional[int]:
         """Verify token and return user_id"""
-        now_ist = datetime.now(IST)
-        user = await self.users.find_one({
-            "verify_token": token,
-            "token_expiry": {"$gt": now_ist}
-        })
+        now_ist = self.get_now_ist()
+        user = await self.users.find_one({"verify_token": token})
         
         if user:
-            verify_expiry = now_ist + timedelta(seconds=VERIFY_TOKEN_TIMEOUT)
-            await self.users.update_one(
-                {"user_id": user["user_id"]},
-                {"$set": {
-                    "is_verified": True,
-                    "verify_expiry": verify_expiry,
-                    "verify_token": None,
-                    "token_expiry": None
-                }}
-            )
-            return user["user_id"]
+            token_expiry = user.get("token_expiry")
+            
+            # Make token_expiry timezone-aware if needed
+            if token_expiry and token_expiry.tzinfo is None:
+                token_expiry = token_expiry.replace(tzinfo=IST)
+            
+            # Check if token is still valid
+            if token_expiry and now_ist < token_expiry:
+                verify_expiry = now_ist + timedelta(seconds=VERIFY_TOKEN_TIMEOUT)
+                await self.users.update_one(
+                    {"user_id": user["user_id"]},
+                    {"$set": {
+                        "is_verified": True,
+                        "verify_expiry": verify_expiry,
+                        "verify_token": None,
+                        "token_expiry": None
+                    }}
+                )
+                return user["user_id"]
         
         return None
     
