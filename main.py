@@ -7,12 +7,13 @@ from handlers.webhook import process_webhook
 from utils.helpers import set_webhook
 
 app = FastAPI()
-
-# Initialize database
 db = get_database()
 
+# Support GET and HEAD for health check
 @app.get("/")
+@app.head("/")
 @app.get("/health")
+@app.head("/health")
 async def health():
     return {"status": "healthy", "bot": "movie-bot"}
 
@@ -52,4 +53,4 @@ if __name__ == "__main__":
     port = int(os.getenv("PORT", 8080))
     print("🚀 Starting Movie Bot")
     uvicorn.run(app, host="0.0.0.0", port=port)
-            
+        
