@@ -269,14 +269,25 @@ async def search_movie(client, message):
         ]
     ])
     
-    # Send with file_id (should work now with new upload)
-    await message.reply_photo(
-        photo=movie['poster_file_id'],
-        caption=caption,
-        reply_markup=buttons
-    )
-    print(f"✅ Sent: {movie['title']}")
-
+    # Try to send with file_id, if fails, download and resend
+    try:
+        await message.reply_photo(
+            photo=movie['poster_file_id'],
+            caption=caption,
+            reply_markup=buttons
+        )
+        print(f"✅ Sent: {movie['title']}")
+    except Exception as e:
+        print(f"⚠️ File ID failed: {e}")
+        # Send text only as fallback
+        await message.reply_text(
+            f"{caption}\n\n"
+            f"🎬 [Watch Now]({movie['lulu_stream_link']})\n"
+            f"⬇️ [Download]({movie['htfilesharing_link']})",
+            disable_web_page_preview=False
+        )
+        print(f"✅ Sent (text-only): {movie['title']}")
+        
 # ============================================
 # FASTAPI
 # ============================================
