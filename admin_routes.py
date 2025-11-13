@@ -5,7 +5,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from typing import Optional
 from bson import ObjectId
 import base64
-from config import ADMIN_USERNAME, ADMIN_PASSWORD
+from config import ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_IDS
 from database import get_database
 
 templates = Jinja2Templates(directory="templates")
