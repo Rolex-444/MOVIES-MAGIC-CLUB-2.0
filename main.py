@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, HTMLResponse
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 import os
@@ -17,6 +17,11 @@ from config import (
 )
 import pytz
 from datetime import datetime, timedelta
+
+from user_routes import (
+    homepage, movie_detail, search_movies, browse_language, browse_genre
+    # Add other routes as needed
+)
 
 app = FastAPI()
 db = get_database()
@@ -60,7 +65,7 @@ async def bot_check_verification(user_id):
         return True, None
 
     verify_token = generate_verify_token()
-    redirect_url = f"https://sour-merilyn-rolex44-13621f81.koyeb.app/verified?uid={user_id}&token={verify_token}"
+    redirect_url = f"https://your-app-url/verified?uid={user_id}&token={verify_token}"
     shortlink_url = create_universal_shortlink(redirect_url)
     await db.verif_tokens.insert_one(
         {
@@ -82,7 +87,7 @@ async def start_command(client, message):
         "Happy Watching!"
     )
     buttons = InlineKeyboardMarkup([
-        [InlineKeyboardButton("🌐 Browse Movies", web_app=WebAppInfo(url="https://sour-merilyn-rolex44-13621f81.koyeb.app"))],
+        [InlineKeyboardButton("🌐 Browse Movies", web_app=WebAppInfo(url="https://your-app-url"))],
         [InlineKeyboardButton("👥 Join Group", url=REQUEST_GROUP)]
     ])
     await message.reply_text(welcome_text, reply_markup=buttons)
@@ -118,7 +123,7 @@ async def search_movie(client, message):
         poster_file_id = movie.get("poster_file_id")
         lulu_stream = movie.get("lulu_stream_link")
         htfilesharing = movie.get("htfilesharing_link")
-        movie_url = f"https://sour-merilyn-rolex44-13621f81.koyeb.app/movie/{movie['_id']}"
+        movie_url = f"https://your-app-url/movie/{movie['_id']}"
 
         caption = (
             f"🎬 **{title}** {f'({year})' if year else ''}\n"
@@ -151,15 +156,19 @@ async def on_startup():
 async def on_shutdown():
     await bot.stop()
 
-# Import user routes
-from user_routes import homepage, movie_detail, search_movies, verified_callback
-
+# Register user routes
 app.add_api_route("/", homepage, methods=["GET"])
 app.add_api_route("/movie/{movie_id}", movie_detail, methods=["GET"])
 app.add_api_route("/search", search_movies, methods=["GET"])
-app.add_api_route("/verified", verified_callback, methods=["GET"])
+app.add_api_route("/language/{language}", browse_language, methods=["GET"])
+app.add_api_route("/genre/{genre}", browse_genre, methods=["GET"])
+
+# === ADMIN DASHBOARD ROUTE (NEW) ===
+@app.get("/admin", response_class=HTMLResponse)
+async def admin_dashboard(request: Request):
+    return templates.TemplateResponse("admin_dashboard.html", {"request": request})
 
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=int(os.getenv("PORT", 8080)), log_level="info")
-        
+                      
