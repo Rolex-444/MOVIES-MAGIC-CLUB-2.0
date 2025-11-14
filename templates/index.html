@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Magic Club - Watch Latest Movies</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #141414;
+            color: #ffffff;
+        }
+        
+        /* Navbar */
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        
+        .navbar-brand {
+            font-size: 28px;
+            font-weight: 800;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .search-bar {
+            flex: 1;
+            max-width: 600px;
+            margin: 0 40px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        /* Latest Releases Carousel */
+        .carousel-section {
+            padding: 40px 0;
+            overflow: hidden;
+            background: #1a1a1a;
+        }
+        
+        .carousel-title {
+            font-size: 24px;
+            font-weight: 800;
+            padding: 0 40px 20px;
+            color: #fff;
+        }
+        
+        .carousel-container {
+            position: relative;
+            overflow: hidden;
+            padding: 0 40px;
+        }
+        
+        .carousel-track {
+            display: flex;
+            gap: 20px;
+            animation: slide 30s linear infinite;
+        }
+        
+        .carousel-track:hover {
+            animation-play-state: paused;
+        }
+        
+        @keyframes slide {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+        
+        .carousel-poster {
+            min-width: 200px;
+            height: 300px;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s;
+            position: relative;
+        }
+        
+        .carousel-poster:hover {
+            transform: scale(1.05);
+        }
+        
+        .carousel-poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* Category Sections */
+        .section {
+            padding: 40px;
+        }
+        
+        .section-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+        
+        .movie-row {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: #764ba2 #1a1a1a;
+        }
+        
+        .movie-row::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .movie-row::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+        
+        .movie-row::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+        
+        .movie-card {
+            min-width: 180px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .movie-card:hover {
+            transform: scale(1.05);
+        }
+        
+        .movie-poster {
+            width: 180px;
+            height: 270px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        
+        .movie-poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .movie-info {
+            padding: 5px;
+        }
+        
+        .movie-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .movie-meta {
+            font-size: 14px;
+            color: #999;
+            font-weight: 600;
+        }
+        
+        /* Language Tags */
+        .language-tags {
+            display: flex;
+            gap: 15px;
+            padding: 20px 40px;
+            overflow-x: auto;
+        }
+        
+        .language-tag {
+            padding: 10px 25px;
+            background: rgba(102, 126, 234, 0.2);
+            border: 2px solid #667eea;
+            border-radius: 50px;
+            font-weight: 700;
+            text-decoration: none;
+            color: #fff;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+        
+        .language-tag:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transform: translateY(-2px);
+        }
+        
+        /* Footer */
+        .footer {
+            background: #0a0a0a;
+            padding: 40px;
+            text-align: center;
+            margin-top: 60px;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        
+        .footer-links a {
+            color: #999;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: #667eea;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px 20px;
+            }
+            
+            .search-bar {
+                margin: 0;
+                max-width: 100%;
+            }
+            
+            .section {
+                padding: 20px;
+            }
+            
+            .carousel-poster {
+                min-width: 150px;
+                height: 225px;
+            }
+            
+            .movie-poster {
+                width: 140px;
+                height: 210px;
+            }
+            
+            .movie-card {
+                min-width: 140px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">🎬 MOVIE MAGIC CLUB</a>
+        <div class="search-bar">
+            <form action="/search" method="get">
+                <input type="text" name="q" class="search-input" placeholder="Search movies..." required>
+            </form>
+        </div>
+    </nav>
+    
+    <!-- Latest Releases Carousel (Auto-Sliding) -->
+    <div class="carousel-section">
+        <h2 class="carousel-title">🆕 LATEST RELEASES</h2>
+        <div class="carousel-container">
+            <div class="carousel-track">
+                {% for movie in latest_movies %}
+                <a href="/movie/{{ movie._id }}" class="carousel-poster">
+                    <img src="https://via.placeholder.com/200x300?text={{ movie.title }}" 
+                         alt="{{ movie.title }}"
+                         onerror="this.src='https://via.placeholder.com/200x300?text={{ movie.title }}'">
+                </a>
+                {% endfor %}
+                <!-- Duplicate for seamless loop -->
+                {% for movie in latest_movies %}
+                <a href="/movie/{{ movie._id }}" class="carousel-poster">
+                    <img src="https://via.placeholder.com/200x300?text={{ movie.title }}" 
+                         alt="{{ movie.title }}"
+                         onerror="this.src='https://via.placeholder.com/200x300?text={{ movie.title }}'">
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Language Tags -->
+    <div class="language-tags">
+        <a href="/language/Tamil" class="language-tag">🗣️ Tamil</a>
+        <a href="/language/Hindi" class="language-tag">🗣️ Hindi</a>
+        <a href="/language/Telugu" class="language-tag">🗣️ Telugu</a>
+        <a href="/language/Malayalam" class="language-tag">🗣️ Malayalam</a>
+        <a href="/language/English" class="language-tag">🗣️ English</a>
+    </div>
+    
+    <!-- Trending Now -->
+    {% if trending_movies %}
+    <div class="section">
+        <h2 class="section-title">🔥 TRENDING NOW</h2>
+        <div class="movie-row">
+            {% for movie in trending_movies %}
+            <a href="/movie/{{ movie._id }}" class="movie-card">
+                <div class="movie-poster">
+                    <img src="https://via.placeholder.com/180x270?text={{ movie.title }}" 
+                         alt="{{ movie.title }}"
+                         onerror="this.src='https://via.placeholder.com/180x270?text={{ movie.title }}'">
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">{{ movie.title }}</div>
+                    <div class="movie-meta">{{ movie.year }} • {{ movie.language }}</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Tamil Movies -->
+    {% if tamil_movies %}
+    <div class="section">
+        <h2 class="section-title">🎬 TAMIL MOVIES</h2>
+        <div class="movie-row">
+            {% for movie in tamil_movies %}
+            <a href="/movie/{{ movie._id }}" class="movie-card">
+                <div class="movie-poster">
+                    <img src="https://via.placeholder.com/180x270?text={{ movie.title }}" 
+                         alt="{{ movie.title }}"
+                         onerror="this.src='https://via.placeholder.com/180x270?text={{ movie.title }}'">
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">{{ movie.title }}</div>
+                    <div class="movie-meta">{{ movie.year }} • {{ movie.quality }}</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Hindi Movies -->
+    {% if hindi_movies %}
+    <div class="section">
+        <h2 class="section-title">🎬 HINDI MOVIES</h2>
+        <div class="movie-row">
+            {% for movie in hindi_movies %}
+            <a href="/movie/{{ movie._id }}" class="movie-card">
+                <div class="movie-poster">
+                    <img src="https://via.placeholder.com/180x270?text={{ movie.title }}" 
+                         alt="{{ movie.title }}"
+                         onerror="this.src='https://via.placeholder.com/180x270?text={{ movie.title }}'">
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">{{ movie.title }}</div>
+                    <div class="movie-meta">{{ movie.year }} • {{ movie.quality }}</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Action Movies -->
+    {% if action_movies %}
+    <div class="section">
+        <h2 class="section-title">💥 ACTION MOVIES</h2>
+        <div class="movie-row">
+            {% for movie in action_movies %}
+            <a href="/movie/{{ movie._id }}" class="movie-card">
+                <div class="movie-poster">
+                    <img src="https://via.placeholder.com/180x270?text={{ movie.title }}" 
+                         alt="{{ movie.title }}"
+                         onerror="this.src='https://via.placeholder.com/180x270?text={{ movie.title }}'">
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">{{ movie.title }}</div>
+                    <div class="movie-meta">{{ movie.year }} • {{ movie.language }}</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Drama Movies -->
+    {% if drama_movies %}
+    <div class="section">
+        <h2 class="section-title">💖 DRAMA MOVIES</h2>
+        <div class="movie-row">
+            {% for movie in drama_movies %}
+            <a href="/movie/{{ movie._id }}" class="movie-card">
+                <div class="movie-poster">
+                    <img src="https://via.placeholder.com/180x270?text={{ movie.title }}" 
+                         alt="{{ movie.title }}"
+                         onerror="this.src='https://via.placeholder.com/180x270?text={{ movie.title }}'">
+                </div>
+                <div class="movie-info">
+                    <div class="movie-title">{{ movie.title }}</div>
+                    <div class="movie-meta">{{ movie.year }} • {{ movie.language }}</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="https://t.me/movies_magic_club3">📱 Telegram Group</a>
+            <a href="/admin">🔐 Admin Login</a>
+        </div>
+        <p style="color: #666; font-weight: 600;">© 2024 Movie Magic Club. All rights reserved.</p>
+        <p style="color: #666; font-size: 14px; margin-top: 10px;">Total Movies: {{ total_movies }}</p>
+    </footer>
+</body>
+</html>
