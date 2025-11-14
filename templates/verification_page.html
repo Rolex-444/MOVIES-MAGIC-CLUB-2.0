@@ -2,16 +2,66 @@
 <html>
 <head>
     <title>Verify to Continue</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
-        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-               display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-        .verify-card { background: white; padding: 40px; border-radius: 20px; text-align: center; max-width: 400px; }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .verify-card {
+            background: white;
+            padding: 38px 32px 30px 32px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 380px;
+            width: 100%;
+            box-shadow: 0 12px 32px rgba(40,30,70,0.12);
+        }
+        h1 {
+            color: #5D68EA;
+            margin-bottom: 18px;
+            font-size: 26px;
+        }
         .verify-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white; padding: 15px 40px; border-radius: 50px;
-            font-size: 18px; font-weight: 700; text-decoration: none; display: inline-block; margin-top: 20px;
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 17px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 18px;
+            transition: background 0.2s;
         }
-        .tutorial-link { margin-top:15px; display:block; font-size:14px; }
+        .verify-btn:hover {
+            background: linear-gradient(135deg, #5647ea 0%, #643b8a 100%);
+        }
+        .tutorial-link {
+            display: block;
+            margin-top: 18px;
+            font-size: 14px;
+            color: #667eea;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .tutorial-link:hover {
+            text-decoration: underline;
+        }
+        p {
+            color: #333;
+            font-size: 16px;
+            margin-top: 8px;
+            margin-bottom: 6px;
+        }
+        .sub {
+            color: #888;
+            font-size: 13px;
+            margin-top: 18px;
+        }
     </style>
 </head>
 <body>
@@ -23,9 +73,11 @@
         </a>
         <a class="tutorial-link" href="https://t.me/Sr_Movie_Links/52" target="_blank">
             📖 HOW TO VERIFY</a>
-        <p style="color: #999; font-size: 14px; margin-top: 13px;">
-            This helps us keep the service free. After verification you will have unlimited access, resets every midnight.
+        <p class="sub">
+            This helps us keep the service free.<br>
+            After verification you will have unlimited access today.
         </p>
     </div>
 </body>
 </html>
+    
