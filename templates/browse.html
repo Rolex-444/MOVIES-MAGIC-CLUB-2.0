@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - Movie Magic Club</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #141414;
+            color: #ffffff;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        
+        .navbar-brand {
+            font-size: 24px;
+            font-weight: 800;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .back-btn {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: white;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 40px;
+        }
+        
+        .page-title {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+        
+        .movie-count {
+            font-size: 18px;
+            color: #999;
+            font-weight: 600;
+            margin-bottom: 40px;
+        }
+        
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 30px;
+        }
+        
+        .movie-card {
+            cursor: pointer;
+            transition: transform 0.3s;
+            text-decoration: none;
+            color: white;
+        }
+        
+        .movie-card:hover {
+            transform: scale(1.05);
+        }
+        
+        .movie-poster {
+            width: 100%;
+            aspect-ratio: 2/3;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        
+        .movie-poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .movie-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .movie-meta {
+            font-size: 14px;
+            color: #999;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 20px;
+            }
+            
+            .movie-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">🎬 MOVIE MAGIC CLUB</a>
+        <a href="/" class="back-btn">← Back to Home</a>
+    </nav>
+    
+    <div class="container">
+        <h1 class="page-title">{{ title }}</h1>
+        <p class="movie-count">{{ count }} movies available</p>
+        
+        <div class="movie-grid">
+            {% for movie in movies %}
+            <a href="/movie/{{ movie._id }}" class="movie-card">
+                <div class="movie-poster">
+                    <img src="https://via.placeholder.com/180x270?text={{ movie.title }}" 
+                         alt="{{ movie.title }}"
+                         onerror="this.src='https://via.placeholder.com/180x270?text={{ movie.title }}'">
+                </div>
+                <div class="movie-title">{{ movie.title }}</div>
+                <div class="movie-meta">{{ movie.year }} • {{ movie.language }}</div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
