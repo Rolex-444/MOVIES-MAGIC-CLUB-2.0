@@ -1,81 +1,59 @@
-from fastapi import Request, Form, UploadFile, File, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi import Request, Form, UploadFile, File
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from starlette.middleware.sessions import SessionMiddleware
-from typing import Optional
-from bson import ObjectId
-import base64
-from config import ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_IDS
 from database import get_database
+from config import ADMIN_USERNAME, ADMIN_PASSWORD
+from bson import ObjectId
+from pyrogram import Client
+from config import BOT_TOKEN, API_ID, API_HASH
 
 templates = Jinja2Templates(directory="templates")
 db = get_database()
 
-# ============================================
-# ADMIN AUTHENTICATION
-# ============================================
-
-def check_admin_auth(request: Request):
-    """Check if admin is logged in"""
-    return request.session.get("admin_logged_in", False)
+# Initialize bot for uploading posters
+bot = Client("poster_uploader", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN, in_memory=True)
 
 # ============================================
-# ADMIN LOGIN ROUTES
+# ADMIN LOGIN
 # ============================================
 
 async def admin_login_page(request: Request):
     """Show admin login page"""
-    return templates.TemplateResponse("admin_login.html", {
-        "request": request,
-        "error": None,
-        "success": None
-    })
+    return templates.TemplateResponse("admin_login.html", {"request": request})
 
 async def admin_login_post(request: Request, username: str = Form(...), password: str = Form(...)):
     """Handle admin login"""
     if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
-        request.session["admin_logged_in"] = True
+        request.session["admin"] = True
         return RedirectResponse("/admin/dashboard", status_code=302)
-    else:
-        return templates.TemplateResponse("admin_login.html", {
-            "request": request,
-            "error": "❌ Invalid username or password!",
-            "success": None
-        })
+    
+    return templates.TemplateResponse("admin_login.html", {
+        "request": request,
+        "error": "Invalid credentials!"
+    })
 
 async def admin_logout(request: Request):
     """Logout admin"""
     request.session.clear()
-    return RedirectResponse("/admin", status_code=302)
+    return RedirectResponse("/admin")
 
 # ============================================
 # ADMIN DASHBOARD
 # ============================================
 
 async def admin_dashboard(request: Request):
-    """Main dashboard page"""
-    if not check_admin_auth(request):
-        return RedirectResponse("/admin", status_code=302)
+    """Show admin dashboard"""
+    if not request.session.get("admin"):
+        return RedirectResponse("/admin")
     
-    # Get statistics
+    # Get stats
     total_movies = await db.movies.count_documents({})
     total_users = await db.users.count_documents({})
-    total_views = 0
-    
-    # Get all movies to calculate total views
-    movies = await db.movies.find().to_list(length=None)
-    for movie in movies:
-        total_views += movie.get('views', 0)
-    
-    # Get recent movies (last 5)
-    recent_movies = await db.movies.find().sort("_id", -1).limit(5).to_list(length=5)
     
     return templates.TemplateResponse("admin_dashboard.html", {
         "request": request,
         "total_movies": total_movies,
-        "total_users": total_users,
-        "total_views": total_views,
-        "recent_movies": recent_movies
+        "total_users": total_users
     })
 
 # ============================================
@@ -83,89 +61,73 @@ async def admin_dashboard(request: Request):
 # ============================================
 
 async def admin_add_movie_page(request: Request):
-    """Show add movie form"""
-    if not check_admin_auth(request):
-        return RedirectResponse("/admin", status_code=302)
+    """Show add movie page"""
+    if not request.session.get("admin"):
+        return RedirectResponse("/admin")
     
-    return templates.TemplateResponse("admin_add_movie.html", {
-        "request": request,
-        "success": None,
-        "error": None
-    })
+    return templates.TemplateResponse("admin_add_movie.html", {"request": request})
 
 async def admin_add_movie_post(
     request: Request,
     title: str = Form(...),
     year: int = Form(...),
-    language: str = Form(...),  # NEW: Language field
-    genres: str = Form(...),
+    language: str = Form(...),
     quality: str = Form(...),
+    genres: str = Form(...),
     description: str = Form(...),
     lulu_link: str = Form(...),
     ht_link: str = Form(...),
     poster: UploadFile = File(...)
 ):
     """Handle add movie form submission"""
-    if not check_admin_auth(request):
-        return RedirectResponse("/admin", status_code=302)
+    if not request.session.get("admin"):
+        return RedirectResponse("/admin")
     
     try:
-        # Read poster image
-        poster_data = await poster.read()
+        # Upload poster to Telegram
+        await bot.start()
         
-        # Upload to Telegram to get file_id (using bot)
-        from main import bot
-        from io import BytesIO
+        # Read poster file
+        poster_content = await poster.read()
         
-        # Get admin ID from ADMIN_IDS
-        admin_id = ADMIN_IDS[0] if ADMIN_IDS else 0
-        
-        # Send photo to admin to get file_id
-        sent_message = await bot.send_photo(
-            chat_id=admin_id,
-            photo=BytesIO(poster_data),
-            caption=f"Poster for: {title} ({language})"
+        # Upload to Telegram and get file_id
+        message = await bot.send_photo(
+            chat_id="me",  # Send to saved messages
+            photo=poster_content,
+            caption=f"Poster for {title}"
         )
         
-        # Get file_id directly (Pyrogram 2.x)
-        poster_file_id = sent_message.photo.file_id
+        poster_file_id = message.photo.file_id
+        
+        await bot.stop()
         
         # Parse genres
         genres_list = [g.strip() for g in genres.split(",")]
         
-        # Create movie document
-        movie_doc = {
+        # Insert movie into database
+        movie_data = {
             "title": title,
             "year": year,
-            "language": language,  # NEW: Save language
-            "genres": genres_list,
+            "language": language,
             "quality": quality,
+            "genres": genres_list,
             "description": description,
             "lulu_stream_link": lulu_link,
             "htfilesharing_link": ht_link,
             "poster_file_id": poster_file_id,
-            "views": 0,
-            "added_by": "admin"
+            "views": 0
         }
         
-        # Save to database
-        result = await db.movies.insert_one(movie_doc)
-        
-        print(f"✅ Movie added: {title} ({language}) - ID: {result.inserted_id}")
+        await db.movies.insert_one(movie_data)
         
         return templates.TemplateResponse("admin_add_movie.html", {
             "request": request,
-            "success": f"✅ Movie '{title}' ({language}) added successfully!",
-            "error": None
+            "success": f"✅ Movie '{title}' added successfully!"
         })
         
     except Exception as e:
-        print(f"❌ Error adding movie: {e}")
-        import traceback
-        traceback.print_exc()
         return templates.TemplateResponse("admin_add_movie.html", {
             "request": request,
-            "success": None,
             "error": f"❌ Error: {str(e)}"
         })
 
@@ -174,12 +136,12 @@ async def admin_add_movie_post(
 # ============================================
 
 async def admin_movies_page(request: Request):
-    """View all movies page"""
-    if not check_admin_auth(request):
-        return RedirectResponse("/admin", status_code=302)
+    """Show all movies"""
+    if not request.session.get("admin"):
+        return RedirectResponse("/admin")
     
     # Get all movies
-    movies = await db.movies.find().sort("_id", -1).to_list(length=None)
+    movies = await db.movies.find().sort("_id", -1).to_list(length=100)
     
     return templates.TemplateResponse("admin_movies.html", {
         "request": request,
@@ -192,20 +154,12 @@ async def admin_movies_page(request: Request):
 
 async def admin_delete_movie(request: Request, movie_id: str):
     """Delete a movie"""
-    if not check_admin_auth(request):
-        return JSONResponse({"success": False, "error": "Not authenticated"})
+    if not request.session.get("admin"):
+        return RedirectResponse("/admin")
     
     try:
-        # Delete from database
-        result = await db.movies.delete_one({"_id": ObjectId(movie_id)})
-        
-        if result.deleted_count > 0:
-            print(f"✅ Movie deleted: {movie_id}")
-            return JSONResponse({"success": True, "message": "Movie deleted!"})
-        else:
-            return JSONResponse({"success": False, "error": "Movie not found"})
-            
-    except Exception as e:
-        print(f"❌ Delete error: {e}")
-        return JSONResponse({"success": False, "error": str(e)})
-        
+        await db.movies.delete_one({"_id": ObjectId(movie_id)})
+        return RedirectResponse("/admin/movies", status_code=302)
+    except:
+        return RedirectResponse("/admin/movies", status_code=302)
+    
