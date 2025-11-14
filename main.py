@@ -7,18 +7,10 @@ import uvicorn
 import os
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from config import BOT_TOKEN, API_ID, API_HASH, ADMIN_IDS, SECRET_KEY
+from config import BOT_TOKEN, API_ID, API_HASH, ADMIN_IDS, SECRET_KEY, REQUEST_GROUP
 from database import get_database
-# Add to existing imports
-from user_routes import (
-    homepage,
-    movie_detail,
-    search_movies,
-    browse_language,
-    browse_genre
-)
 
-
+# Initialize FastAPI
 app = FastAPI()
 db = get_database()
 
@@ -31,7 +23,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Templates
 templates = Jinja2Templates(directory="templates")
 
-# Pyrogram client
+# Pyrogram client (FAST MODE - No webhook)
 bot = Client(
     "moviebot",
     api_id=API_ID,
@@ -40,106 +32,10 @@ bot = Client(
     in_memory=True
 )
 
-# ============================================
-# BOT COMMANDS (KEEP YOUR EXISTING BOT CODE)
-# ============================================
-
-@bot.on_message(filters.command("start") & filters.private)
-async def start(client, message):
-    """Start command"""
-    user_id = message.from_user.id
-    is_admin = user_id in ADMIN_IDS
-    
-    if is_admin:
-        text = (
-            "🎬 **Movie Bot - Admin**\n\n"
-            "✅ Super fast responses!\n\n"
-            "**Commands:**\n"
-            "/addmovie - Add new movie\n"
-            "/listmovies - View all movies\n"
-            "/test - Test bot"
-        )
-    else:
-        text = "🎬 **Movie Magic Club**\n\nType movie name to search!"
-    
-    await message.reply_text(text)
-
-@bot.on_message(filters.command("test") & filters.private)
-async def test(client, message):
-    """Test command"""
-    total = await db.movies.count_documents({})
-    await message.reply_text(
-        f"✅ **Test**\n\n"
-        f"🤖 Bot: Online\n"
-        f"⚡ Mode: Pyrogram FAST\n"
-        f"🎬 Movies: {total}\n"
-        f"👤 ID: `{message.from_user.id}`"
-    )
-
-# ... (KEEP ALL YOUR OTHER BOT COMMANDS)
+print("✅ Pyrogram bot started - FAST MODE!")
 
 # ============================================
-# MOVIE SEARCH (EXISTING CODE)
-# ============================================
-
-@bot.on_message(filters.text & filters.private & ~filters.command(["start", "test", "addmovie", "listmovies", "cancel"]))
-async def search_movie(client, message):
-    """Search and show movie"""
-    query = message.text.strip()
-    print(f"🔍 Search: {query}")
-    
-    movies = await db.search_movies(query)
-    
-    if not movies:
-        await message.reply_text(f"😕 No results for: `{query}`")
-        return
-    
-    movie = movies[0]
-    caption = (
-        f"🎬 **{movie['title']}** ({movie.get('year', 'N/A')})\n\n"
-        f"🎭 {', '.join(movie.get('genres', []))}\n"
-        f"📺 {movie.get('quality', 'HD')}\n\n"
-        f"📝 {movie.get('description', 'No description')}"
-    )
-    
-    buttons = InlineKeyboardMarkup([
-        [
-            InlineKeyboardButton("🎬 Watch", url=movie['lulu_stream_link']),
-            InlineKeyboardButton("⬇️ Download", url=movie['htfilesharing_link'])
-        ]
-    ])
-    
-    # Try with poster
-    try:
-        await message.reply_photo(
-            photo=movie['poster_file_id'],
-            caption=caption,
-            reply_markup=buttons
-        )
-        print(f"✅ Sent with poster: {movie['title']}")
-    except Exception as e:
-        print(f"⚠️ Poster failed: {e}")
-        # Send without poster BUT WITH BUTTONS!
-        await message.reply_text(
-            caption,
-            reply_markup=buttons
-        )
-        print(f"✅ Sent without poster: {movie['title']}")
-
-# ============================================
-# FASTAPI ROUTES (Health Check)
-# ============================================
-
-@app.get("/")
-@app.head("/")
-@app.get("/health")
-@app.head("/health")
-async def health():
-    """Health check endpoint"""
-    return {"status": "healthy", "bot": "movie-bot"}
-
-# ============================================
-# ADMIN ROUTES (Import from admin_routes.py)
+# ADMIN ROUTES (Phase 1)
 # ============================================
 
 from admin_routes import (
@@ -154,67 +50,216 @@ from admin_routes import (
 )
 
 # Admin Login
-@app.get("/admin", response_class=HTMLResponse)
-async def get_admin_login(request: Request):
-    return await admin_login_page(request)
+app.get("/admin", response_class=HTMLResponse)(admin_login_page)
+app.post("/admin", response_class=HTMLResponse)(admin_login_post)
 
-@app.post("/admin/login")
-async def post_admin_login(request: Request, username: str = Form(...), password: str = Form(...)):
-    return await admin_login_post(request, username, password)
-
-@app.get("/admin/logout")
-async def get_admin_logout(request: Request):
-    return await admin_logout(request)
+# Admin Logout
+app.get("/admin/logout")(admin_logout)
 
 # Admin Dashboard
-@app.get("/admin/dashboard", response_class=HTMLResponse)
-async def get_admin_dashboard(request: Request):
-    return await admin_dashboard(request)
+app.get("/admin/dashboard", response_class=HTMLResponse)(admin_dashboard)
 
 # Add Movie
-@app.get("/admin/add-movie", response_class=HTMLResponse)
-async def get_admin_add_movie(request: Request):
-    return await admin_add_movie_page(request)
-
-@app.post("/admin/add-movie")
-async def post_admin_add_movie(
-    request: Request,
-    title: str = Form(...),
-    year: int = Form(...),
-    genres: str = Form(...),
-    quality: str = Form(...),
-    description: str = Form(...),
-    lulu_link: str = Form(...),
-    ht_link: str = Form(...),
-    poster: UploadFile = File(...)
-):
-    return await admin_add_movie_post(request, title, year, genres, quality, description, lulu_link, ht_link, poster)
+app.get("/admin/add-movie", response_class=HTMLResponse)(admin_add_movie_page)
+app.post("/admin/add-movie", response_class=HTMLResponse)(admin_add_movie_post)
 
 # View All Movies
-@app.get("/admin/movies", response_class=HTMLResponse)
-async def get_admin_movies(request: Request):
-    return await admin_movies_page(request)
+app.get("/admin/movies", response_class=HTMLResponse)(admin_movies_page)
 
 # Delete Movie
-@app.post("/admin/delete-movie/{movie_id}")
-async def post_admin_delete_movie(request: Request, movie_id: str):
-    return await admin_delete_movie(request, movie_id)
+app.post("/admin/delete-movie/{movie_id}")(admin_delete_movie)
+
+# ============================================
+# USER WEBSITE ROUTES (Phase 2)
+# ============================================
+
+from user_routes import (
+    homepage,
+    movie_detail,
+    search_movies,
+    browse_language,
+    browse_genre
+)
+
+# Homepage
+app.get("/", response_class=HTMLResponse)(homepage)
+
+# Movie detail page
+app.get("/movie/{movie_id}", response_class=HTMLResponse)(movie_detail)
+
+# Search
+app.get("/search", response_class=HTMLResponse)(search_movies)
+
+# Browse by language
+app.get("/language/{language}", response_class=HTMLResponse)(browse_language)
+
+# Browse by genre
+app.get("/genre/{genre}", response_class=HTMLResponse)(browse_genre)
+
+# ============================================
+# TELEGRAM BOT HANDLERS
+# ============================================
+
+@bot.on_message(filters.command("start") & filters.private)
+async def start_command(client, message):
+    """Handle /start command"""
+    user_id = message.from_user.id
+    username = message.from_user.username or message.from_user.first_name
+    
+    # Save user to database
+    await db.users.update_one(
+        {"user_id": user_id},
+        {
+            "$set": {
+                "username": username,
+                "user_id": user_id
+            },
+            "$setOnInsert": {"joined_at": message.date}
+        },
+        upsert=True
+    )
+    
+    welcome_text = (
+        f"🎬 **Welcome to Movie Magic Club!**\n\n"
+        f"Hi {username}! 👋\n\n"
+        f"🔍 **Search any movie** by typing its name\n"
+        f"🌐 **Browse all movies** on our website\n"
+        f"📱 **Easy to use** - Just type and watch!\n\n"
+        f"💡 **Tip:** Try searching for \"Leo\" or \"Jailer\"\n"
+    )
+    
+    buttons = InlineKeyboardMarkup([
+        [InlineKeyboardButton("🌐 Browse Website", url="https://your-koyeb-url.koyeb.app")],
+        [InlineKeyboardButton("👥 Join Group", url=REQUEST_GROUP)]
+    ])
+    
+    await message.reply_text(welcome_text, reply_markup=buttons)
+    print(f"✅ New user: {username} (ID: {user_id})")
+
+@bot.on_message(filters.text & filters.private & ~filters.command(["start"]))
+async def search_movie(client, message):
+    """Search and send movie"""
+    query = message.text.strip()
+    print(f"🔍 Search: {query}")
+    
+    # Search in database (case-insensitive)
+    movies = await db.movies.find({
+        "title": {"$regex": query, "$options": "i"}
+    }).to_list(length=10)
+    
+    if not movies:
+        # Movie not found - show request button
+        text = (
+            f"😕 **Movie Not Found**\n\n"
+            f"We searched for: `{query}`\n"
+            f"but couldn't find it in our database.\n\n"
+            f"💡 **What you can do:**\n"
+            f"• Request this movie in our group\n"
+            f"• Browse all available movies\n"
+            f"• Try different spelling\n"
+        )
+        
+        import urllib.parse
+        request_url = f"{REQUEST_GROUP}?text=🎬 Movie Request: {urllib.parse.quote(query)}"
+        
+        buttons = InlineKeyboardMarkup([
+            [InlineKeyboardButton("🎬 Request Movie", url=request_url)],
+            [InlineKeyboardButton("🌐 Browse All Movies", url="https://your-koyeb-url.koyeb.app")]
+        ])
+        
+        await message.reply_text(text, reply_markup=buttons)
+        print(f"❌ Movie not found: {query}")
+        return
+    
+    # Movie found - send details
+    for movie in movies:
+        try:
+            # Prepare movie caption
+            title = movie.get("title", "Unknown")
+            year = movie.get("year", "N/A")
+            language = movie.get("language", "N/A")
+            genres = ", ".join(movie.get("genres", []))
+            quality = movie.get("quality", "N/A")
+            description = movie.get("description", "No description")
+            views = movie.get("views", 0)
+            
+            caption = (
+                f"🎬 **{title}** ({year})\n\n"
+                f"🗣️ Language: {language}\n"
+                f"🎭 Genre: {genres}\n"
+                f"📺 Quality: {quality}\n"
+                f"👁 Views: {views}\n\n"
+                f"📝 {description}\n"
+            )
+            
+            # Buttons
+            buttons = InlineKeyboardMarkup([
+                [
+                    InlineKeyboardButton("▶️ Watch", url=movie.get("lulu_stream_link")),
+                    InlineKeyboardButton("⬇️ Download", url=movie.get("htfilesharing_link"))
+                ],
+                [InlineKeyboardButton("🌐 View on Website", url=f"https://your-koyeb-url.koyeb.app/movie/{movie['_id']}")]
+            ])
+            
+            # Send with poster
+            poster_file_id = movie.get("poster_file_id")
+            if poster_file_id:
+                await message.reply_photo(
+                    photo=poster_file_id,
+                    caption=caption,
+                    reply_markup=buttons
+                )
+                print(f"✅ Sent with poster: {title}")
+            else:
+                await message.reply_text(caption, reply_markup=buttons)
+                print(f"✅ Sent without poster: {title}")
+            
+            # Update view count
+            await db.movies.update_one(
+                {"_id": movie["_id"]},
+                {"$inc": {"views": 1}}
+            )
+            
+        except Exception as e:
+            print(f"❌ Error sending movie: {e}")
+            continue
 
 # ============================================
 # STARTUP & SHUTDOWN
 # ============================================
 
 @app.on_event("startup")
-async def startup():
-    """Start Pyrogram bot"""
+async def startup_event():
+    """Start bot on startup"""
     await bot.start()
-    print("✅ Pyrogram bot started - FAST MODE!")
     print("✅ Admin dashboard: /admin")
     print("🔌 Listening on port 8080")
 
 @app.on_event("shutdown")
-async def shutdown():
-    """Stop Pyrogram bot"""
+async def shutdown_event():
+    """Stop bot on shutdown"""
     await bot.stop()
-    print("✅ Bot stopped")
-        
+    print("🛑 Bot stopped")
+
+# ============================================
+# ROOT ENDPOINT (Health Check)
+# ============================================
+
+@app.head("/")
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {"status": "healthy", "bot": "running"}
+
+# ============================================
+# RUN SERVER
+# ============================================
+
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", 8080))
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=port,
+        log_level="info"
+)
