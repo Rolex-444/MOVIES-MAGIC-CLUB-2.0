@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - Movie Bot</title>
+    <title>Admin Login - Movie Magic Club</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
@@ -15,76 +15,74 @@
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
+            min-height: 100vh;
             padding: 20px;
         }
         
-        .login-container {
+        .login-card {
             background: white;
-            padding: 50px 40px;
+            padding: 50px;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            width: 450px;
-            max-width: 100%;
-            animation: slideUp 0.5s ease;
-        }
-        
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            max-width: 450px;
+            width: 100%;
         }
         
         .logo {
             text-align: center;
-            margin-bottom: 40px;
-        }
-        
-        .logo-icon {
             font-size: 64px;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
         }
         
-        .logo h1 {
+        .title {
+            text-align: center;
             font-size: 32px;
             font-weight: 800;
+            margin-bottom: 10px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 8px;
         }
         
-        .logo p {
-            color: #718096;
+        .subtitle {
+            text-align: center;
+            color: #666;
             font-size: 16px;
             font-weight: 600;
+            margin-bottom: 40px;
+        }
+        
+        .alert {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            font-weight: 700;
+            text-align: center;
+            border: 2px solid #fc8181;
         }
         
         .form-group {
             margin-bottom: 25px;
         }
         
-        .form-group label {
+        .form-label {
             display: block;
+            font-size: 14px;
+            font-weight: 800;
             margin-bottom: 10px;
             color: #2d3748;
-            font-weight: 700;
-            font-size: 14px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         
-        .form-group input {
+        .form-input {
             width: 100%;
-            padding: 16px;
+            padding: 18px;
             border: 2px solid #e2e8f0;
             border-radius: 12px;
             font-size: 16px;
@@ -93,7 +91,7 @@
             font-family: 'Inter', sans-serif;
         }
         
-        .form-group input:focus {
+        .form-input:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
@@ -101,7 +99,7 @@
         
         .btn-login {
             width: 100%;
-            padding: 18px;
+            padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
@@ -119,62 +117,50 @@
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
         }
         
-        .btn-login:active {
-            transform: translateY(0);
+        .back-link {
+            text-align: center;
+            margin-top: 25px;
         }
         
-        .error {
-            background: #fed7d7;
-            color: #c53030;
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            text-align: center;
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
             font-weight: 700;
-            border: 2px solid #fc8181;
+            transition: all 0.3s;
         }
         
-        .success {
-            background: #c6f6d5;
-            color: #22543d;
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            text-align: center;
-            font-weight: 700;
-            border: 2px solid #68d391;
+        .back-link a:hover {
+            color: #764ba2;
         }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="logo">
-            <div class="logo-icon">🎬</div>
-            <h1>MOVIE MAGIC CLUB</h1>
-            <p>Admin Dashboard</p>
-        </div>
+    <div class="login-card">
+        <div class="logo">🎬</div>
+        <h1 class="title">Admin Login</h1>
+        <p class="subtitle">Movie Magic Club</p>
         
         {% if error %}
-        <div class="error">{{ error }}</div>
+        <div class="alert">{{ error }}</div>
         {% endif %}
         
-        {% if success %}
-        <div class="success">{{ success }}</div>
-        {% endif %}
-        
-        <form method="POST" action="/admin/login">
+        <form method="POST" action="/admin">
             <div class="form-group">
-                <label>Username</label>
-                <input type="text" name="username" required autofocus placeholder="Enter username">
+                <label class="form-label">👤 Username</label>
+                <input type="text" name="username" class="form-input" placeholder="Enter username" required autofocus>
             </div>
             
             <div class="form-group">
-                <label>Password</label>
-                <input type="password" name="password" required placeholder="Enter password">
+                <label class="form-label">🔒 Password</label>
+                <input type="password" name="password" class="form-input" placeholder="Enter password" required>
             </div>
             
             <button type="submit" class="btn-login">🔐 Login</button>
         </form>
+        
+        <div class="back-link">
+            <a href="/">← Back to Home</a>
+        </div>
     </div>
 </body>
 </html>
