@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Not Found - Movie Magic Club</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #141414;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        
+        .navbar-brand {
+            font-size: 24px;
+            font-weight: 800;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .icon {
+            font-size: 120px;
+            margin-bottom: 30px;
+        }
+        
+        .title {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .query-text {
+            font-size: 24px;
+            color: #999;
+            font-weight: 600;
+            margin-bottom: 40px;
+        }
+        
+        .description {
+            font-size: 18px;
+            color: #ccc;
+            max-width: 600px;
+            margin-bottom: 50px;
+            line-height: 1.8;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 18px 36px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 800;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .icon {
+                font-size: 80px;
+            }
+            
+            .title {
+                font-size: 32px;
+            }
+            
+            .query-text {
+                font-size: 18px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                width: 100%;
+                max-width: 400px;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">🎬 MOVIE MAGIC CLUB</a>
+    </nav>
+    
+    <div class="container">
+        <div class="icon">😕</div>
+        <h1 class="title">Movie Not Found</h1>
+        <p class="query-text">We searched for: "{{ query }}"</p>
+        <p class="description">
+            We couldn't find this movie in our collection.<br>
+            But don't worry! You can request it and we'll add it soon.
+        </p>
+        
+        <div class="action-buttons">
+            <a href="{{ request_url }}" target="_blank" class="btn btn-primary">
+                🎬 Request This Movie
+            </a>
+            <a href="/" class="btn btn-secondary">
+                🏠 Back to Home
+            </a>
+        </div>
+    </div>
+</body>
+</html>
