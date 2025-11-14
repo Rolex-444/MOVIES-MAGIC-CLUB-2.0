@@ -9,6 +9,14 @@ from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from config import BOT_TOKEN, API_ID, API_HASH, ADMIN_IDS, SECRET_KEY
 from database import get_database
+# Add to existing imports
+from user_routes import (
+    homepage,
+    movie_detail,
+    search_movies,
+    browse_language,
+    browse_genre
+)
 
 
 app = FastAPI()
