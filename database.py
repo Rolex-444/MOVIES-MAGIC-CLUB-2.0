@@ -2,7 +2,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict
 import logging
-from config import MONGO_URI, FREE_VIDEO_LIMIT, VERIFY_TOKEN_TIMEOUT
+from config import MONGO_URI, VERIFICATION_FREE_LIMIT, VERIFICATION_PERIOD_HOURS
 
 logger = logging.getLogger(__name__)
 
