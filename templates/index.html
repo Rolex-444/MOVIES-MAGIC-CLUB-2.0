@@ -5,6 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Movie Magic Club - Watch Latest Movies</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Telegram Web App Script (Phase 3) -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        // Initialize Telegram Web App
+        if (window.Telegram && window.Telegram.WebApp) {
+            const tg = window.Telegram.WebApp;
+            tg.ready();
+            tg.expand(); // Expand to full screen
+            
+            // Customize theme colors
+            tg.setHeaderColor('#667eea');
+            tg.setBackgroundColor('#141414');
+            
+            // Get Telegram user info (optional)
+            const user = tg.initDataUnsafe?.user;
+            if (user) {
+                console.log('✅ Telegram User:', user.first_name);
+            }
+        }
+    </script>
+    
     <style>
         * {
             margin: 0;
@@ -311,10 +333,12 @@
     
     <!-- Language Tags -->
     <div class="language-tags">
+        <a href="/language/Multi-Dubbed" class="language-tag">🌍 Multi-Dubbed</a>
         <a href="/language/Tamil" class="language-tag">🗣️ Tamil</a>
         <a href="/language/Hindi" class="language-tag">🗣️ Hindi</a>
         <a href="/language/Telugu" class="language-tag">🗣️ Telugu</a>
         <a href="/language/Malayalam" class="language-tag">🗣️ Malayalam</a>
+        <a href="/language/Kannada" class="language-tag">🗣️ Kannada</a>
         <a href="/language/English" class="language-tag">🗣️ English</a>
     </div>
     
@@ -439,3 +463,4 @@
     </footer>
 </body>
 </html>
+    
