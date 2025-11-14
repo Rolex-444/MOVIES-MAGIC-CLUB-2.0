@@ -11,16 +11,19 @@ WEBHOOK_URL = os.getenv("WEBHOOK_URL", "")
 ADMIN_IDS = [int(id.strip()) for id in os.getenv("ADMIN_IDS").split(",")]
 MONGO_URI = os.getenv("MONGO_URI")
 
-# Admin Dashboard Credentials (NEW)
+# Admin Dashboard Credentials
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "Admin@123")
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-12345-change-this")
 
-# Shortlink Configuration (ALREADY EXISTS - ADD MISSING LINE)
+# Shortlink Configuration
 SHORTLINK_API = os.getenv("SHORTLINK_API", "")
 SHORTLINK_URL = os.getenv("SHORTLINK_URL", "")
 BOT_USERNAME = os.getenv("BOT_USERNAME", "")
 FREE_VIDEO_LIMIT = int(os.getenv("FREE_VIDEO_LIMIT", 3))
-VERIFY_TOKEN_TIMEOUT = int(os.getenv("VERIFY_TOKEN_TIMEOUT", 600))  # ADD THIS LINE!
+VERIFY_TOKEN_TIMEOUT = int(os.getenv("VERIFY_TOKEN_TIMEOUT", 600))
+
+# Request Group Link (NEW - Phase 2)
+REQUEST_GROUP = "https://t.me/movies_magic_club3"
 
 print("✅ Config loaded")
