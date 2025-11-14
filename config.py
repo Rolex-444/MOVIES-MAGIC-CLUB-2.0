@@ -16,12 +16,15 @@ ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "Admin@123")
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-12345-change-this")
 
-# Shortlink Configuration
-SHORTLINK_API = os.getenv("SHORTLINK_API", "")
-SHORTLINK_URL = os.getenv("SHORTLINK_URL", "")
-BOT_USERNAME = os.getenv("BOT_USERNAME", "")
-FREE_VIDEO_LIMIT = int(os.getenv("FREE_VIDEO_LIMIT", 3))
-VERIFY_TOKEN_TIMEOUT = int(os.getenv("VERIFY_TOKEN_TIMEOUT", 600))
+# --- Shortlink Verification Settings ---
+SHORTLINK_URL = "https://yourshortlinkservice.com"   # e.g. https://gplinks.co (required)
+SHORTLINK_API = "your_api_key_here"                  # your service API key
+
+VERIFICATION_FREE_LIMIT = 3         # Free movie accesses per user per day
+VERIFICATION_RESET_HOUR = 0         # Hour (0 = midnight, 24hr format)
+VERIFICATION_PERIOD_HOURS = 24      # After verifying, how long should unlimited access last
+VERIFICATION_TUTORIAL_LINK = "https://t.me/Sr_Movie_Links/52"  # Your tutorial link
+
 
 # Request Group Link (NEW - Phase 2)
 REQUEST_GROUP = "https://t.me/movies_magic_club3"
