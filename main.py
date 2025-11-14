@@ -6,7 +6,7 @@ from starlette.middleware.sessions import SessionMiddleware
 import uvicorn
 import os
 from pyrogram import Client, filters
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from config import BOT_TOKEN, API_ID, API_HASH, ADMIN_IDS, SECRET_KEY, REQUEST_GROUP
 from database import get_database
 
@@ -97,7 +97,7 @@ app.get("/language/{language}", response_class=HTMLResponse)(browse_language)
 app.get("/genre/{genre}", response_class=HTMLResponse)(browse_genre)
 
 # ============================================
-# TELEGRAM BOT HANDLERS
+# TELEGRAM BOT HANDLERS (Phase 3 - with Web App)
 # ============================================
 
 @bot.on_message(filters.command("start") & filters.private)
@@ -123,13 +123,15 @@ async def start_command(client, message):
         f"🎬 **Welcome to Movie Magic Club!**\n\n"
         f"Hi {username}! 👋\n\n"
         f"🔍 **Search any movie** by typing its name\n"
-        f"🌐 **Browse all movies** on our website\n"
-        f"📱 **Easy to use** - Just type and watch!\n\n"
+        f"🌐 **Browse all movies** - Opens inside Telegram!\n"
+        f"📱 **No need to leave** this app\n\n"
         f"💡 **Tip:** Try searching for \"Leo\" or \"Jailer\"\n"
     )
     
+    # Web App button (opens INSIDE Telegram!)
     buttons = InlineKeyboardMarkup([
-        [InlineKeyboardButton("🌐 Browse Website", url="https://your-koyeb-url.koyeb.app")],
+        [InlineKeyboardButton("🌐 Browse Movies", 
+                             web_app=WebAppInfo(url="https://sour-merilyn-rolex44-13621f81.koyeb.app"))],
         [InlineKeyboardButton("👥 Join Group", url=REQUEST_GROUP)]
     ])
     
@@ -164,7 +166,8 @@ async def search_movie(client, message):
         
         buttons = InlineKeyboardMarkup([
             [InlineKeyboardButton("🎬 Request Movie", url=request_url)],
-            [InlineKeyboardButton("🌐 Browse All Movies", url="https://your-koyeb-url.koyeb.app")]
+            [InlineKeyboardButton("🌐 Browse All Movies", 
+                                 web_app=WebAppInfo(url="https://sour-merilyn-rolex44-13621f81.koyeb.app"))]
         ])
         
         await message.reply_text(text, reply_markup=buttons)
@@ -192,13 +195,14 @@ async def search_movie(client, message):
                 f"📝 {description}\n"
             )
             
-            # Buttons
+            # Buttons (with Web App for website link)
             buttons = InlineKeyboardMarkup([
                 [
                     InlineKeyboardButton("▶️ Watch", url=movie.get("lulu_stream_link")),
                     InlineKeyboardButton("⬇️ Download", url=movie.get("htfilesharing_link"))
                 ],
-                [InlineKeyboardButton("🌐 View on Website", url=f"https://your-koyeb-url.koyeb.app/movie/{movie['_id']}")]
+                [InlineKeyboardButton("🌐 View on Website", 
+                                     web_app=WebAppInfo(url=f"https://sour-merilyn-rolex44-13621f81.koyeb.app/movie/{movie['_id']}"))]
             ])
             
             # Send with poster
@@ -262,4 +266,5 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=port,
         log_level="info"
-)
+    )
+    
