@@ -58,14 +58,6 @@ bot = Client(
 print("✅ Pyrogram bot started - FAST MODE!")
 
 # ============================================
-# CHANNEL INITIALIZATION (TEMPORARY - REMOVE AFTER FIRST RUN)
-# ============================================
-async def init_channel():
-    """Initialize channel by sending a test message"""
-    async with Client("init-bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN, in_memory=True) as app:
-        await app.send_message(POSTER_CHANNEL, "✅ Channel initialized for poster uploads.")
-        
-# ============================================
 # ADMIN ROUTES (Phase 1)
 # ============================================
 
@@ -325,7 +317,6 @@ async def search_movie(client, message):
 
 @app.on_event("startup")
 async def startup_event():
-    await init_channel()
     """Start bot on startup"""
     await bot.start()
     print("✅ Admin dashboard: /admin")
