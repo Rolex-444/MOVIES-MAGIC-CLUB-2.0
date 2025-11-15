@@ -33,10 +33,6 @@ poster_bot = Client(
     in_memory=True,
 )
 
-# Start poster bot once (when module is imported)
-# Koyeb runs this inside the same event loop as FastAPI
-asyncio.get_event_loop().run_until_complete(poster_bot.start())
-
 # ============================================
 # ADMIN LOGIN
 # ============================================
