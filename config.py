@@ -65,7 +65,7 @@ VERIFICATION_ON = os.getenv("VERIFICATION_ON", "true").lower() == "true"
 # =========================
 
 # Your Koyeb or deployed website base URL
-WEBHOOK_URL = os.getenv("BASE_URL", "https://your-app-url.koyeb.app")
+BASE_URL = os.getenv("BASE_URL", "https://your-app-url.koyeb.app")
 
 # Telegram group/channel for requests
 REQUEST_GROUP = os.getenv("REQUEST_GROUP", "https://t.me/movies_magic_club3")
