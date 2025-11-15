@@ -1,317 +1,194 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ movie.title }} ({{ movie.year }}) - Movie Magic Club</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #141414;
-            color: #ffffff;
-        }
-        
-        .navbar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-        }
-        
-        .navbar-brand {
-            font-size: 24px;
-            font-weight: 800;
-            color: white;
-            text-decoration: none;
-        }
-        
-        .back-btn {
-            padding: 10px 20px;
-            background: rgba(255,255,255,0.2);
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-weight: 700;
-            text-decoration: none;
-            transition: all 0.3s;
-        }
-        
-        .back-btn:hover {
-            background: rgba(255,255,255,0.3);
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 40px;
-        }
-        
-        .movie-header {
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 40px;
-            margin-bottom: 60px;
-        }
-        
-        .poster-section {
-            position: relative;
-        }
-        
-        .poster {
-            width: 100%;
-            border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-        }
-        
-        .details-section {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        
-        .movie-title {
-            font-size: 48px;
-            font-weight: 800;
-            margin-bottom: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .meta-info {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-        }
-        
-        .meta-tag {
-            padding: 8px 16px;
-            background: rgba(102, 126, 234, 0.2);
-            border: 2px solid #667eea;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 14px;
-        }
-        
-        .description {
-            font-size: 18px;
-            line-height: 1.8;
-            color: #cccccc;
-            margin-bottom: 30px;
-            font-weight: 500;
-        }
-        
-        .action-buttons {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .btn {
-            padding: 16px 32px;
-            border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: 800;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.3s;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-        }
-        
-        .btn-secondary {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: 2px solid rgba(255,255,255,0.3);
-        }
-        
-        .btn-secondary:hover {
-            background: rgba(255,255,255,0.2);
-        }
-        
-        .related-section {
-            margin-top: 60px;
-        }
-        
-        .section-title {
-            font-size: 28px;
-            font-weight: 800;
-            margin-bottom: 30px;
-        }
-        
-        .movie-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 20px;
-        }
-        
-        .movie-card {
-            cursor: pointer;
-            transition: transform 0.3s;
-            text-decoration: none;
-            color: white;
-        }
-        
-        .movie-card:hover {
-            transform: scale(1.05);
-        }
-        
-        .movie-poster {
-            width: 100%;
-            aspect-ratio: 2/3;
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 10px;
-        }
-        
-        .movie-poster img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .movie-info-title {
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-        
-        .movie-info-meta {
-            font-size: 14px;
-            color: #999;
-            font-weight: 600;
-        }
-        
-        @media (max-width: 768px) {
-            .movie-header {
-                grid-template-columns: 1fr;
-            }
-            
-            .movie-title {
-                font-size: 32px;
-            }
-            
-            .container {
-                padding: 0 20px;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-            }
-            
-            .btn {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-    </style>
-</head>
-<body>
-    <nav class="navbar">
-        <a href="/" class="navbar-brand">🎬 MOVIE MAGIC CLUB</a>
-        <a href="/" class="back-btn">← Back to Home</a>
-    </nav>
-    
-    <div class="container">
-        <div class="movie-header">
-            <div class="poster-section">
-                <img src="https://via.placeholder.com/300x450?text={{ movie.title }}" 
-                     alt="{{ movie.title }}" 
-                     class="poster"
-                     onerror="this.src='https://via.placeholder.com/300x450?text={{ movie.title }}'">
-            </div>
-            
-            <div class="details-section">
-                <h1 class="movie-title">{{ movie.title }}</h1>
-                
-                <div class="meta-info">
-                    <span class="meta-tag">📅 {{ movie.year }}</span>
-                    <span class="meta-tag">🗣️ {{ movie.language }}</span>
-                    <span class="meta-tag">📺 {{ movie.quality }}</span>
-                    <span class="meta-tag">👁 {{ movie.views }} views</span>
-                </div>
-                
-                <div class="meta-info">
-                    {% for genre in movie.genres %}
-                    <span class="meta-tag">🎭 {{ genre }}</span>
-                    {% endfor %}
-                </div>
-                
-                <p class="description">{{ movie.description }}</p>
-                
-                <div class="action-buttons">
-                    <a href="{{ movie.lulu_stream_link }}" target="_blank" class="btn btn-primary">
-                        ▶️ Watch Now
-                    </a>
-                    <a href="{{ movie.htfilesharing_link }}" target="_blank" class="btn btn-secondary">
-                        ⬇️ Download
-                    </a>
-                    <button class="btn btn-secondary" onclick="shareMovie()">
-                        📤 Share
-                    </button>
-                </div>
-            </div>
+{% extends "base.html" %}
+{% block title %}{{ movie.title }} – Details{% endblock %}
+
+{% block content %}
+<div class="movie-detail-page">
+
+  <!-- Header section: poster + main info -->
+  <div class="movie-header">
+    <div class="poster">
+      {% if movie.poster_url %}
+        <img src="{{ movie.poster_url }}" alt="{{ movie.title }}">
+      {% else %}
+        <div class="poster-placeholder">
+          <span>No Poster</span>
         </div>
-        
-        {% if related_movies %}
-        <div class="related-section">
-            <h2 class="section-title">🎬 More Like This</h2>
-            <div class="movie-grid">
-                {% for movie in related_movies %}
-                <a href="/movie/{{ movie._id }}" class="movie-card">
-                    <div class="movie-poster">
-                        <img src="https://via.placeholder.com/180x270?text={{ movie.title }}" 
-                             alt="{{ movie.title }}"
-                             onerror="this.src='https://via.placeholder.com/180x270?text={{ movie.title }}'">
-                    </div>
-                    <div class="movie-info-title">{{ movie.title }}</div>
-                    <div class="movie-info-meta">{{ movie.year }} • {{ movie.language }}</div>
-                </a>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
+      {% endif %}
     </div>
+
+    <div class="info">
+      <h1 class="movie-title">{{ movie.title }}</h1>
+
+      <p class="meta">
+        <span>Year: {{ movie.year or "N/A" }}</span>
+        &nbsp;•&nbsp;
+        <span>Language: {{ movie.language or "N/A" }}</span>
+        &nbsp;•&nbsp;
+        <span>Quality: {{ movie.quality or "N/A" }}</span>
+      </p>
+
+      {% if movie.genres %}
+      <p class="genres">
+        Genres:
+        {% for g in movie.genres %}
+          <span class="badge badge-genre">{{ g }}</span>
+        {% endfor %}
+      </p>
+      {% endif %}
+
+      {% if movie.duration %}
+      <p class="duration">
+        Duration: {{ movie.duration }}
+      </p>
+      {% endif %}
+
+      <p class="views">
+        👁 Views: {{ movie.views or 0 }}
+      </p>
+
+      <p class="description">
+        {{ movie.description or "No description available." }}
+      </p>
+
+      <!-- IMPORTANT: Watch / Download buttons -->
+      <div class="actions">
+        <!-- These URLs hit FastAPI routes that redirect to real links -->
+        <a href="/watch/{{ movie._id }}" class="btn btn-primary">
+          ▶ Watch Now
+        </a>
+        <a href="/download/{{ movie._id }}" class="btn btn-secondary">
+          ⬇ Download
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Optional: Screenshots carousel/grid -->
+  {% if movie.screenshots %}
+  <div class="screenshots">
+    <h2>Screenshots</h2>
+    <div class="screenshot-grid">
+      {% for s in movie.screenshots %}
+        <img src="{{ s }}" alt="Screenshot {{ loop.index }}">
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Optional: Tags section -->
+  {% if movie.tags %}
+  <div class="tags">
+    <h3>Tags</h3>
+    {% for t in movie.tags %}
+      <span class="badge badge-tag">{{ t }}</span>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div>
+
+<style>
+  .movie-detail-page {
+    max-width: 1100px;
+    margin: 20px auto;
+    padding: 15px;
+  }
+  .movie-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .poster img {
+    max-width: 260px;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+  .poster-placeholder {
+    width: 260px;
+    height: 380px;
+    border-radius: 8px;
+    background: #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    font-size: 14px;
+  }
+  .info {
+    flex: 1;
+    min-width: 260px;
+  }
+  .movie-title {
+    margin-bottom: 10px;
+  }
+  .meta {
+    color: #bbb;
+    margin-bottom: 10px;
+  }
+  .genres, .duration, .views {
+    margin-bottom: 8px;
+  }
+  .badge-genre, .badge-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    margin: 2px;
+    border-radius: 12px;
+    background: #333;
+    color: #eee;
+    font-size: 12px;
+  }
+  .description {
+    margin: 15px 0;
+    line-height: 1.5;
+  }
+  .actions {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .btn-primary {
+    background: #e50914;
+    color: #fff;
+  }
+  .btn-secondary {
+    background: #444;
+    color: #fff;
+  }
+  .screenshots {
+    margin-top: 30px;
+  }
+  .screenshot-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+  .screenshot-grid img {
+    width: 100%;
+    border-radius: 6px;
+    object-fit: cover;
+  }
+  .tags {
+    margin-top: 20px;
+  }
+
+  @media (max-width: 768px) {
+    .movie-detail-page {
+      padding: 10px;
+    }
+    .poster img, .poster-placeholder {
+      max-width: 100%;
+      width: 100%;
+      height: auto;
+    }
+  }
+</style>
+{% endblock %}
     
-    <script>
-        function shareMovie() {
-            const url = window.location.href;
-            const title = "{{ movie.title }}";
-            
-            if (navigator.share) {
-                navigator.share({
-                    title: title,
-                    url: url
-                });
-            } else {
-                // Fallback - copy to clipboard
-                navigator.clipboard.writeText(url);
-                alert('Link copied to clipboard!');
-            }
-        }
-    </script>
-</body>
-</html>
