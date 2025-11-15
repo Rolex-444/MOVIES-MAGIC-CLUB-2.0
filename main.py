@@ -70,6 +70,7 @@ from admin_routes import (
     admin_add_movie_post,
     admin_movies_page,
     admin_delete_movie,
+    poster_bot,  # import poster_bot
 )
 
 # Admin Login
@@ -319,6 +320,7 @@ async def search_movie(client, message):
 async def startup_event():
     """Start bot on startup"""
     await bot.start()
+    await poster_bot.start()  # start poster uploader bot
     print("✅ Admin dashboard: /admin")
     print("🔌 Listening on port 8080")
 
@@ -327,9 +329,8 @@ async def startup_event():
 async def shutdown_event():
     """Stop bot on shutdown"""
     await bot.stop()
-    print("🛑 Bot stopped")
-
-
+    await poster_bot.stop()
+    
 # ============================================
 # VERIFICATION CALLBACK ROUTE (NEW)
 # ============================================
