@@ -3,13 +3,12 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
-
 import uvicorn
 import os
 from datetime import datetime, timedelta
 
 from pyrogram import Client, filters
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from config import (
     BOT_TOKEN,
@@ -18,10 +17,10 @@ from config import (
     ADMIN_IDS,
     SECRET_KEY,
     REQUEST_GROUP,
-    BASE_URL,                    # NEW
-    VERIFICATION_PERIOD_HOURS,   # NEW
-    VERIFICATION_TUTORIAL_LINK,  # NEW
-    VERIFICATION_TUTORIAL_NAME,  # NEW
+    BASE_URL,
+    VERIFICATION_PERIOD_HOURS,
+    VERIFICATION_TUTORIAL_LINK,
+    VERIFICATION_TUTORIAL_NAME,
 )
 
 from database import get_database
@@ -120,7 +119,7 @@ app.get("/language/{language}", response_class=HTMLResponse)(browse_language)
 app.get("/genre/{genre}", response_class=HTMLResponse)(browse_genre)
 
 # ============================================
-# TELEGRAM BOT HANDLERS (Phase 3 - with Web App)
+# TELEGRAM BOT HANDLERS (Phase 3 - NO WebApp)
 # ============================================
 
 @bot.on_message(filters.command("start") & filters.private)
@@ -146,22 +145,14 @@ async def start_command(client, message):
         f"🎬 **Welcome to Movie Magic Club!**\n\n"
         f"Hi {username}! 👋\n\n"
         f"🔍 **Search any movie** by typing its name\n"
-        f"🌐 **Browse all movies** - Opens inside Telegram!\n"
-        f"📱 **No need to leave** this app\n\n"
+        f"🌐 **Browse all movies** on our website\n\n"
         f"💡 **Tip:** Try searching for \"Leo\" or \"Jailer\"\n"
     )
 
-    # Web App button (opens INSIDE Telegram!)
+    # Simple URL buttons (no WebApp)
     buttons = InlineKeyboardMarkup(
         [
-            [
-                InlineKeyboardButton(
-                    "🌐 Browse Movies",
-                    web_app=WebAppInfo(
-                        url="https://sour-merilyn-rolex44-13621f81.koyeb.app"
-                    ),
-                )
-            ],
+            [InlineKeyboardButton("🌐 Browse Website", url=BASE_URL)],
             [InlineKeyboardButton("👥 Join Group", url=REQUEST_GROUP)],
         ]
     )
@@ -173,7 +164,6 @@ async def start_command(client, message):
 @bot.on_message(filters.text & filters.private & ~filters.command(["start"]))
 async def search_movie(client, message):
     """Search and send movie"""
-
     user_id = message.from_user.id
 
     # ========== NEW: Shortlink verification daily limit ==========
@@ -245,14 +235,7 @@ async def search_movie(client, message):
         buttons = InlineKeyboardMarkup(
             [
                 [InlineKeyboardButton("🎬 Request Movie", url=request_url)],
-                [
-                    InlineKeyboardButton(
-                        "🌐 Browse All Movies",
-                        web_app=WebAppInfo(
-                            url="https://sour-merilyn-rolex44-13621f81.koyeb.app"
-                        ),
-                    )
-                ],
+                [InlineKeyboardButton("🌐 Browse All Movies", url=BASE_URL)],
             ]
         )
 
@@ -281,7 +264,9 @@ async def search_movie(client, message):
                 f"📝 {description}\n"
             )
 
-            # Buttons (with Web App for website link)
+            # Buttons (simple URLs, no WebApp)
+            movie_url = f"{BASE_URL}/movie/{movie['_id']}"
+            
             buttons = InlineKeyboardMarkup(
                 [
                     [
@@ -295,12 +280,7 @@ async def search_movie(client, message):
                     [
                         InlineKeyboardButton(
                             "🌐 View on Website",
-                            web_app=WebAppInfo(
-                                url=(
-                                    "https://sour-merilyn-rolex44-13621f81.koyeb.app"
-                                    f"/movie/{movie['_id']}"
-                                )
-                            ),
+                            url=movie_url
                         )
                     ],
                 ]
@@ -329,6 +309,7 @@ async def search_movie(client, message):
             print(f"❌ Error sending movie: {e}")
             continue
 
+
 # ============================================
 # STARTUP & SHUTDOWN
 # ============================================
@@ -347,6 +328,7 @@ async def shutdown_event():
     await bot.stop()
     print("🛑 Bot stopped")
 
+
 # ============================================
 # VERIFICATION CALLBACK ROUTE (NEW)
 # ============================================
@@ -357,6 +339,7 @@ async def verified(request: Request, uid: str, token: str):
     Called after user finishes shortlink; verifies token and unlocks for the day.
     """
     row = await db.verif_tokens.find_one({"user_id": str(uid), "token": token})
+
     if not row:
         return HTMLResponse("Invalid or expired verification token.", status_code=400)
 
@@ -369,6 +352,7 @@ async def verified(request: Request, uid: str, token: str):
 
     return RedirectResponse(url="/")
 
+
 # ============================================
 # ROOT ENDPOINT (Health Check)
 # ============================================
@@ -378,6 +362,7 @@ async def verified(request: Request, uid: str, token: str):
 async def health_check():
     """Health check endpoint"""
     return {"status": "healthy", "bot": "running"}
+
 
 # ============================================
 # RUN SERVER
@@ -391,3 +376,4 @@ if __name__ == "__main__":
         port=port,
         log_level="info",
 )
+    
