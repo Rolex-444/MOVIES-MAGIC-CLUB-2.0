@@ -4,34 +4,19 @@ from fastapi.templating import Jinja2Templates
 
 from bson import ObjectId
 import io
-import asyncio
 
 from database import get_database
 from config import (
     ADMIN_USERNAME,
     ADMIN_PASSWORD,
-    BOT_TOKEN,
-    API_ID,
-    API_HASH,
     POSTER_CHANNEL,
 )
 
-from pyrogram import Client
+# Import the main bot client (single Pyrogram client)
+from main import bot
 
 templates = Jinja2Templates(directory="templates")
 db = get_database()
-
-# ============================================
-# POSTER UPLOADER BOT (PERSISTENT CLIENT)
-# ============================================
-
-poster_bot = Client(
-    "poster_uploader",
-    api_id=API_ID,
-    api_hash=API_HASH,
-    bot_token=BOT_TOKEN,
-    in_memory=True,
-)
 
 # ============================================
 # ADMIN LOGIN
@@ -77,6 +62,7 @@ async def admin_dashboard(request: Request):
         return RedirectResponse("/admin")
 
     total_movies = await db.movies.count_documents({})
+
     return templates.TemplateResponse(
         "admin_dashboard.html",
         {
@@ -92,6 +78,7 @@ async def admin_movies_page(request: Request):
         return RedirectResponse("/admin")
 
     movies = await db.movies.find().sort("created_at", -1).to_list(length=200)
+
     return templates.TemplateResponse(
         "admin_movies.html",
         {
@@ -141,9 +128,9 @@ async def admin_add_movie_post(
             poster_file = io.BytesIO(poster_bytes)
             poster_file.name = poster.filename
 
-            # Use the persistent poster_bot and string chat id
-            message = await poster_bot.send_photo(
-                chat_id=str(POSTER_CHANNEL),
+            # bot is already started in main.py startup_event
+            message = await bot.send_photo(
+                chat_id=int(POSTER_CHANNEL),
                 photo=poster_file,
                 caption=f"Poster for {title}",
             )
