@@ -5,7 +5,7 @@ from database import get_database
 from config import ADMIN_USERNAME, ADMIN_PASSWORD
 from bson import ObjectId
 from pyrogram import Client
-from config import BOT_TOKEN, API_ID, API_HASH
+from config import BOT_TOKEN, API_ID, API_HASH, POSTER_CHANNEL  # Add POSTER_CHANNEL to imports
 import io
 
 templates = Jinja2Templates(directory="templates")
