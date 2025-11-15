@@ -1,83 +1,120 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Verify to Continue</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8">
+    <title>Movie Access Verification</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Fonts for Modern Look -->
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(120deg, #141e30 0%, #243b55 100%);
             min-height: 100vh;
+            margin: 0;
+            font-family: 'Montserrat', Arial, sans-serif;
+            color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .verify-card {
-            background: white;
-            padding: 38px 32px 30px 32px;
-            border-radius: 20px;
-            text-align: center;
-            max-width: 380px;
+        .container {
+            background: rgba(34, 40, 49, 0.95);
+            border-radius: 24px;
+            max-width: 400px;
             width: 100%;
-            box-shadow: 0 12px 32px rgba(40,30,70,0.12);
+            box-shadow: 0 8px 32px rgba(16, 29, 44, 0.4);
+            padding: 2.5rem 2rem;
+            text-align: center;
         }
-        h1 {
-            color: #5D68EA;
-            margin-bottom: 18px;
-            font-size: 26px;
-        }
-        .verify-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 40px;
-            border-radius: 50px;
-            font-size: 17px;
+        .container h1 {
+            letter-spacing: 1px;
+            font-size: 2.1rem;
+            margin-bottom: 0.6rem;
+            color: #66e0ff;
             font-weight: 700;
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 18px;
-            transition: background 0.2s;
         }
-        .verify-btn:hover {
-            background: linear-gradient(135deg, #5647ea 0%, #643b8a 100%);
+        .container .icon {
+            font-size: 3.2rem;
+            margin-bottom: 0.3rem;
+        }
+        .container p {
+            margin: 0.8rem 0;
+            font-size: 1.12rem;
+            color: #efefef;
+        }
+        .notice {
+            background: #0880e340;
+            color: #66e0ff;
+            padding: 0.8rem 1rem;
+            border-radius: 12px;
+            font-weight: 600;
+            margin-bottom: 1.1rem;
+        }
+        .btn-primary, .btn-secondary {
+            display: block;
+            width: 100%;
+            max-width: 330px;
+            margin: 1rem auto 0.5rem auto;
+            padding: 0.85rem 1.5rem;
+            border-radius: 10px;
+            border: none;
+            outline: none;
+            font-size: 1.08rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-decoration: none;
+            transition: background .18s;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #06d6a0 0%, #1e90ff 100%);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(90deg, #57e2c6 0%, #5faaff 100%);
+        }
+        .btn-secondary {
+            background: #253149;
+            color: #66e0ff;
+            border: 1.2px solid #0880e3cc;
+        }
+        .btn-secondary:hover {
+            background: #345379;
+            color: #fff;
         }
         .tutorial-link {
-            display: block;
-            margin-top: 18px;
-            font-size: 14px;
-            color: #667eea;
-            font-weight: 600;
-            text-decoration: none;
+            font-size: 0.98rem;
+            margin-top: 1.3rem;
+            color: #66e0ff;
         }
-        .tutorial-link:hover {
-            text-decoration: underline;
-        }
-        p {
-            color: #333;
-            font-size: 16px;
-            margin-top: 8px;
-            margin-bottom: 6px;
-        }
-        .sub {
-            color: #888;
-            font-size: 13px;
-            margin-top: 18px;
+        @media (max-width: 450px) {
+            .container {
+                padding: 1.3rem 0.4rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="verify-card">
-        <h1>🔐 Verification Required</h1>
-        <p>IT JUST ONE PAGE.<br>ONCE YOU COMPLETE THE VERIFICATION YOU ACCESS MY BOT AFTER 24 HOURS.</p>
-        <a href="{{ shortlink_url }}" class="verify-btn" target="_blank">
-            ✓ Verify to Continue
-        </a>
-        <a class="tutorial-link" href="https://t.me/Sr_Movie_Links/52" target="_blank">
-            📖 HOW TO VERIFY</a>
-        <p class="sub">
-            This helps us keep the service free.<br>
-            After verification you will have unlimited access today.
+    <div class="container">
+        <span class="icon">🎬</span>
+        <h1>Easy Movie Verification</h1>
+        <div class="notice" style="font-size: 1.05rem;">
+            This is a one-time ad page. After you verify, you get unlimited movie access for the next 24 hours.<br>
+            <b>No more ads for a whole day!</b>
+        </div>
+        <p>
+            For security and free access, please <b>complete this quick verification</b>.<br>
+            Just click the button below & follow the simple steps.<br>
+            You'll instantly unlock all movies for 24 hours!
+        </p>
+        <a href="{{ shortlink_url }}" class="btn-primary">✅ Verify Now (1-Click)</a>
+        <a href="{{ tutorial_link }}" class="btn-secondary">{{ tutorial_name }}</a>
+        <div class="tutorial-link">
+            Need help? See <a href="{{ tutorial_link }}" style="color: #22ddee;" target="_blank">How To Verify</a>
+        </div>
+        <p style="font-size: 0.94rem; margin-top:1.7rem; color:#aaa;">
+            This simple process keeps Movie Magic Club free for all users.<br>
+            Thank you for your support!
         </p>
     </div>
 </body>
 </html>
-    
