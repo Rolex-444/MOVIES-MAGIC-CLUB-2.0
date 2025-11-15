@@ -29,7 +29,7 @@ from verification import create_universal_shortlink, generate_verify_token
 from verification_checker import check_user_access, mark_user_verified
 
 # ============================================
-# FASTAPI + DATABASE + TEMPLATES
+# FASTAPI + DB + STATIC
 # ============================================
 
 app = FastAPI()
@@ -41,7 +41,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 # ============================================
-# PYROGRAM BOT CLIENT (NO WEBHOOK)
+# PYROGRAM BOT (SINGLE CLIENT)
 # ============================================
 
 bot = Client(
@@ -52,10 +52,10 @@ bot = Client(
     in_memory=True,
 )
 
-print("✅ Pyrogram bot client created (FAST MODE)")
+print("✅ Pyrogram bot client created")
 
 # ============================================
-# ADMIN ROUTES (import from admin_routes.py)
+# ADMIN ROUTES
 # ============================================
 
 from admin_routes import (
@@ -69,12 +69,9 @@ from admin_routes import (
     admin_delete_movie,
 )
 
-# Admin login/logout
 app.get("/admin", response_class=HTMLResponse)(admin_login_page)
 app.post("/admin", response_class=HTMLResponse)(admin_login_post)
 app.get("/admin/logout")(admin_logout)
-
-# Admin dashboard + movies
 app.get("/admin/dashboard", response_class=HTMLResponse)(admin_dashboard)
 app.get("/admin/add-movie", response_class=HTMLResponse)(admin_add_movie_page)
 app.post("/admin/add-movie", response_class=HTMLResponse)(admin_add_movie_post)
@@ -82,7 +79,7 @@ app.get("/admin/movies", response_class=HTMLResponse)(admin_movies_page)
 app.post("/admin/delete-movie/{movie_id}")(admin_delete_movie)
 
 # ============================================
-# USER WEBSITE ROUTES (import from user_routes.py)
+# USER WEB ROUTES
 # ============================================
 
 from user_routes import (
@@ -105,11 +102,9 @@ app.get("/genre/{genre}", response_class=HTMLResponse)(browse_genre)
 
 @bot.on_message(filters.command("start") & filters.private)
 async def start_command(client, message):
-    """Handle /start command"""
     user_id = message.from_user.id
     username = message.from_user.username or message.from_user.first_name
 
-    # Save/Update user in DB
     await db.users.update_one(
         {"user_id": user_id},
         {
@@ -122,12 +117,11 @@ async def start_command(client, message):
         upsert=True,
     )
 
-    welcome_text = (
+    text = (
         "🎬 **Welcome to Movie Magic Club!**\n\n"
         f"Hi {username}! 👋\n\n"
-        "🔍 **Search any movie** by typing its name\n"
-        "🌐 **Browse all movies** on our website\n\n"
-        "💡 **Tip:** Try searching for \"Leo\" or \"Jailer\"\n"
+        "🔍 Type a movie name to search.\n"
+        "🌐 Or open the website to browse.\n"
     )
 
     buttons = InlineKeyboardMarkup(
@@ -137,18 +131,15 @@ async def start_command(client, message):
         ]
     )
 
-    await message.reply_text(welcome_text, reply_markup=buttons)
-    print(f"✅ New user: {username} (ID: {user_id})")
+    await message.reply_text(text, reply_markup=buttons)
 
 
 @bot.on_message(filters.text & filters.private & ~filters.command(["start"]))
 async def search_movie(client, message):
-    """Search movie and send result with poster + verification"""
     user_id = message.from_user.id
     query = message.text.strip()
-    print(f"🔍 Search: {query}")
 
-    # ========= Verification Daily Limit =========
+    # ===== Verification limit =====
     access = await check_user_access(user_id, db)
     if not access["allowed"] and access.get("need_verification"):
         verify_token = generate_verify_token()
@@ -178,49 +169,24 @@ async def search_movie(client, message):
         )
 
         await message.reply_text(
-            "You have used today's free limit.\n"
-            "Complete this verification once to unlock all movies for today.",
+            "You reached today's free limit.\n"
+            "Complete this one-time verification to unlock movies.",
             reply_markup=buttons,
         )
         return
-    # ========= End verification block =========
 
-    # Search movies in DB
+    # ===== Movie search =====
     movies = await db.movies.find(
         {"title": {"$regex": query, "$options": "i"}}
     ).to_list(length=10)
 
     if not movies:
-        # Not found
-        import urllib.parse
-
-        text = (
-            "😕 **Movie Not Found**\n\n"
-            f"We searched for: `{query}`\n"
-            "but couldn't find it in our database.\n\n"
-            "💡 **What you can do:**\n"
-            "• Request this movie in our group\n"
-            "• Browse all available movies\n"
-            "• Try different spelling\n"
+        await message.reply_text(
+            "😕 Movie not found in database.\n"
+            "You can request it in our group."
         )
-
-        request_url = (
-            f"{REQUEST_GROUP}"
-            f"?text=🎬 Movie Request: {urllib.parse.quote(query)}"
-        )
-
-        buttons = InlineKeyboardMarkup(
-            [
-                [InlineKeyboardButton("🎬 Request Movie", url=request_url)],
-                [InlineKeyboardButton("🌐 Browse All Movies", url=BASE_URL)],
-            ]
-        )
-
-        await message.reply_text(text, reply_markup=buttons)
-        print(f"❌ Movie not found: {query}")
         return
 
-    # Found movies – send each
     for movie in movies:
         try:
             title = movie.get("title", "Unknown")
@@ -245,29 +211,22 @@ async def search_movie(client, message):
             buttons = InlineKeyboardMarkup(
                 [
                     [
-                        InlineKeyboardButton(
-                            "▶️ Watch", url=movie.get("lulu_link")
-                        ),
-                        InlineKeyboardButton(
-                            "⬇️ Download", url=movie.get("ht_link")
-                        ),
+                        InlineKeyboardButton("▶️ Watch", url=movie.get("lulu_link")),
+                        InlineKeyboardButton("⬇️ Download", url=movie.get("ht_link")),
                     ],
                     [InlineKeyboardButton("🌐 View on Website", url=movie_url)],
                 ]
             )
 
             poster_file_id = movie.get("poster_file_id")
-
             if poster_file_id:
                 await message.reply_photo(
                     photo=poster_file_id,
                     caption=caption,
                     reply_markup=buttons,
                 )
-                print(f"✅ Sent with poster: {title}")
             else:
                 await message.reply_text(caption, reply_markup=buttons)
-                print(f"✅ Sent without poster: {title}")
 
             await db.movies.update_one(
                 {"_id": movie["_id"]},
@@ -275,25 +234,22 @@ async def search_movie(client, message):
             )
 
         except Exception as e:
-            print(f"❌ Error sending movie: {e}")
+            print(f"Error sending movie: {e}")
             continue
 
 # ============================================
-# VERIFICATION CALLBACK ROUTE
+# VERIFICATION CALLBACK
 # ============================================
 
 @app.get("/verified")
 async def verified(request: Request, uid: str, token: str):
-    """Called after user finishes shortlink; verifies token and unlocks for the day."""
     row = await db.verif_tokens.find_one({"user_id": str(uid), "token": token})
     if not row:
         return HTMLResponse("Invalid or expired verification token.", status_code=400)
 
     expires = row.get("expires")
     if expires and datetime.utcnow() > expires:
-        return HTMLResponse(
-            "Verification token expired. Please verify again.", status_code=400
-        )
+        return HTMLResponse("Verification token expired. Please verify again.", status_code=400)
 
     await mark_user_verified(uid, db)
     await db.verif_tokens.delete_one({"_id": row["_id"]})
@@ -304,40 +260,29 @@ async def verified(request: Request, uid: str, token: str):
 # HEALTH CHECK
 # ============================================
 
-@app.head("/")
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "bot": "running"}
+    return {"status": "healthy"}
 
 # ============================================
-# STARTUP & SHUTDOWN – START BOT ONLY ONCE
+# STARTUP / SHUTDOWN (SINGLE START)
 # ============================================
 
 @app.on_event("startup")
 async def startup_event():
-    """Start Pyrogram bot once when FastAPI starts"""
     await bot.start()
-    print("✅ Bot started (Pyrogram + FastAPI)")
-    print("✅ Admin dashboard: /admin")
-    print("🔌 Listening on port 8080")
+    print("✅ Bot started")
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    """Stop Pyrogram bot on shutdown"""
     await bot.stop()
     print("🛑 Bot stopped")
 
 # ============================================
-# RUN SERVER (for local/dev)
+# LOCAL RUN
 # ============================================
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8080))
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=port,
-        log_level="info",
-    )
-    
+    uvicorn.run("main:app", host="0.0.0.0", port=port, log_level="info")
