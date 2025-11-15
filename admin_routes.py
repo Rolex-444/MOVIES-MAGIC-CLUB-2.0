@@ -6,6 +6,7 @@ from config import ADMIN_USERNAME, ADMIN_PASSWORD
 from bson import ObjectId
 from pyrogram import Client
 from config import BOT_TOKEN, API_ID, API_HASH
+import io
 
 templates = Jinja2Templates(directory="templates")
 db = get_database()
@@ -26,7 +27,6 @@ async def admin_login_post(request: Request, username: str = Form(...), password
     if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
         request.session["admin"] = True
         return RedirectResponse("/admin/dashboard", status_code=302)
-    
     return templates.TemplateResponse("admin_login.html", {
         "request": request,
         "error": "Invalid credentials!"
@@ -64,7 +64,6 @@ async def admin_add_movie_page(request: Request):
     """Show add movie page"""
     if not request.session.get("admin"):
         return RedirectResponse("/admin")
-    
     return templates.TemplateResponse("admin_add_movie.html", {"request": request})
 
 async def admin_add_movie_post(
@@ -87,18 +86,19 @@ async def admin_add_movie_post(
         # Upload poster to Telegram
         await bot.start()
         
-        # Read poster file
-        poster_content = await poster.read()
+        # Save poster temporarily
+        poster_bytes = await poster.read()
+        poster_file = io.BytesIO(poster_bytes)
+        poster_file.name = poster.filename  # Give it a name so Pyrogram knows it's a file
         
         # Upload to Telegram and get file_id
         message = await bot.send_photo(
             chat_id="me",  # Send to saved messages
-            photo=poster_content,
+            photo=poster_file,
             caption=f"Poster for {title}"
         )
         
         poster_file_id = message.photo.file_id
-        
         await bot.stop()
         
         # Parse genres
@@ -124,8 +124,14 @@ async def admin_add_movie_post(
             "request": request,
             "success": f"✅ Movie '{title}' added successfully!"
         })
-        
+    
     except Exception as e:
+        # Make sure to stop bot if error happens
+        try:
+            await bot.stop()
+        except:
+            pass
+        
         return templates.TemplateResponse("admin_add_movie.html", {
             "request": request,
             "error": f"❌ Error: {str(e)}"
