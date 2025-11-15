@@ -21,6 +21,7 @@ from config import (
     VERIFICATION_PERIOD_HOURS,
     VERIFICATION_TUTORIAL_LINK,
     VERIFICATION_TUTORIAL_NAME,
+    POSTER_CHANNEL,
 )
 
 from database import get_database
