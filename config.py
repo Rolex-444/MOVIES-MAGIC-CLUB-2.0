@@ -4,19 +4,22 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # =========================
-# BOT/TELEGRAM CONFIG
+# BOT / TELEGRAM CONFIG
 # =========================
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
+
+# Webhook URL (leave empty if using polling / FAST MODE)
 WEBHOOK_URL = os.getenv("WEBHOOK_URL", "")
 
 # List of admin user IDs (comma-separated in .env)
+# Example in Koyeb: 123456789,987654321
 ADMIN_IDS = [int(id.strip()) for id in os.getenv("ADMIN_IDS").split(",")]
 
 # =========================
-# DATABASE/MONGO CONFIG
+# DATABASE / MONGO CONFIG
 # =========================
 
 MONGO_URI = os.getenv("MONGO_URI")
@@ -28,6 +31,7 @@ MONGO_URI = os.getenv("MONGO_URI")
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "Admin@123")
 
+# FastAPI session secret
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-12345-change-this")
 
 # =========================
@@ -50,30 +54,33 @@ VERIFICATION_PERIOD_HOURS = int(os.getenv("VERIFICATION_PERIOD_HOURS", "24"))
 # Tutorial/help button for users
 VERIFICATION_TUTORIAL_LINK = os.getenv(
     "VERIFICATION_TUTORIAL_LINK",
-    "https://t.me/Sr_Movie_Links/52"
+    "https://t.me/Sr_Movie_Links/52",
 )
+
 VERIFICATION_TUTORIAL_NAME = os.getenv(
     "VERIFICATION_TUTORIAL_NAME",
-    "HOW TO VERIFY"
+    "HOW TO VERIFY",
 )
 
 # Enable/disable verification system globally (set "false" to turn off)
 VERIFICATION_ON = os.getenv("VERIFICATION_ON", "true").lower() == "true"
 
 # =========================
-# WEB/DEPLOYED URLS AND REQUEST GROUP
+# WEB / DEPLOYED URLS AND REQUEST GROUP
 # =========================
 
 # Your Koyeb or deployed website base URL
 BASE_URL = os.getenv("BASE_URL", "https://your-app-url.koyeb.app")
 
-# Telegram group/channel for requests
+# Telegram group/channel for user requests
 REQUEST_GROUP = os.getenv("REQUEST_GROUP", "https://t.me/movies_magic_club3")
 
 # =========================
 # POSTER STORAGE CHANNEL
 # =========================
-# Add this to use in admin_routes.py:
-POSTER_CHANNEL = int(os.getenv("POSTER_CHANNEL", "-1003366698966"))  # Replace with your channel ID
+
+# Poster channel id (must be numeric, like -100xxxxxxxxxx)
+# Make sure POSTER_CHANNEL env in Koyeb is set to -1003366698966
+POSTER_CHANNEL = int(os.getenv("POSTER_CHANNEL", "-1003366698966"))
 
 print("✅ Config loaded")
