@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from typing import Optional
 from bson import ObjectId
-
+import urllib.parse
 from database import get_database
 from config import REQUEST_GROUP
 
