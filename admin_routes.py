@@ -3,17 +3,10 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from bson import ObjectId
-import io
+import io  # kept if you later re-enable posters
 
 from database import get_database
-from config import (
-    ADMIN_USERNAME,
-    ADMIN_PASSWORD,
-    POSTER_CHANNEL,
-)
-
-# Import the main bot client (single Pyrogram client)
-from main import bot
+from config import ADMIN_USERNAME, ADMIN_PASSWORD
 
 templates = Jinja2Templates(directory="templates")
 db = get_database()
@@ -57,7 +50,6 @@ async def admin_logout(request: Request):
 # ============================================
 
 async def admin_dashboard(request: Request):
-    """Admin dashboard home"""
     if not request.session.get("admin"):
         return RedirectResponse("/admin")
 
@@ -73,7 +65,6 @@ async def admin_dashboard(request: Request):
 
 
 async def admin_movies_page(request: Request):
-    """List all movies"""
     if not request.session.get("admin"):
         return RedirectResponse("/admin")
 
@@ -89,11 +80,10 @@ async def admin_movies_page(request: Request):
 
 
 # ============================================
-# ADD MOVIE
+# ADD MOVIE (NO POSTER UPLOAD)
 # ============================================
 
 async def admin_add_movie_page(request: Request):
-    """Show add-movie form"""
     if not request.session.get("admin"):
         return RedirectResponse("/admin")
 
@@ -112,33 +102,13 @@ async def admin_add_movie_post(
     ht_link: str = Form(""),
     poster: UploadFile = File(None),
 ):
-    """Handle add-movie submission (with poster upload)"""
     if not request.session.get("admin"):
         return RedirectResponse("/admin")
 
-    error = None
-    poster_file_id = None
-
     try:
-        # -----------------------------
-        # 1) Upload poster to Telegram
-        # -----------------------------
-        if poster is not None:
-            poster_bytes = await poster.read()
-            poster_file = io.BytesIO(poster_bytes)
-            poster_file.name = poster.filename
+        # Poster upload is disabled for now:
+        poster_file_id = None
 
-            # bot is already started in main.py startup_event
-            message = await bot.send_photo(
-                chat_id=int(POSTER_CHANNEL),
-                photo=poster_file,
-                caption=f"Poster for {title}",
-            )
-            poster_file_id = message.photo.file_id
-
-        # -----------------------------
-        # 2) Prepare movie document
-        # -----------------------------
         movie_doc = {
             "title": title.strip(),
             "year": year.strip(),
@@ -151,22 +121,16 @@ async def admin_add_movie_post(
             "poster_file_id": poster_file_id,
         }
 
-        # -----------------------------
-        # 3) Insert into MongoDB
-        # -----------------------------
         await db.movies.insert_one(movie_doc)
 
         return RedirectResponse("/admin/movies", status_code=302)
 
     except Exception as e:
-        error = f"Error: {e}"
-
-        # Re-render the form with error message
         return templates.TemplateResponse(
             "admin_add_movie.html",
             {
                 "request": request,
-                "error": error,
+                "error": f"Error: {e}",
                 "form_title": title,
                 "form_year": year,
                 "form_language": language,
@@ -184,7 +148,6 @@ async def admin_add_movie_post(
 # ============================================
 
 async def admin_delete_movie(request: Request, movie_id: str):
-    """Delete a movie by id"""
     if not request.session.get("admin"):
         return RedirectResponse("/admin")
 
