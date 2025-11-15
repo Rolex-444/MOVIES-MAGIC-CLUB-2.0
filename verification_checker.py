@@ -1,6 +1,7 @@
 # verification_checker.py
 
 from datetime import datetime, timedelta
+
 import pytz
 
 from config import (
@@ -22,9 +23,11 @@ def _today_reset_time():
         second=0,
         microsecond=0,
     )
+
     # If reset time is in the future, use yesterday's reset
     if reset > now:
         reset = reset - timedelta(days=1)
+
     return reset
 
 
@@ -40,13 +43,12 @@ async def check_user_access(user_id: str, db):
     Core function to check if a user can access a movie.
 
     Returns a dict:
-      {
+
         "allowed": bool,
         "reason": str,
-        "count": int,           # current count after possible increment
-        "limit": int,           # free limit
+        "count": int,  # current count after possible increment
+        "limit": int,  # free limit
         "need_verification": bool
-      }
 
     Logic:
     - If VERIFICATION_ON is False -> always allowed.
@@ -75,7 +77,6 @@ async def check_user_access(user_id: str, db):
     #   last_reset: datetime,
     #   last_verified: datetime
     # }
-
     row = await db.verif_users.find_one({"user_id": str(user_id)})
 
     if not row:
@@ -100,6 +101,15 @@ async def check_user_access(user_id: str, db):
     last_reset = row.get("last_reset")
     count = int(row.get("count", 0))
     verified = bool(row.get("verified", False))
+
+    # NORMALIZE last_reset to timezone-aware UTC to avoid naive/aware compare error
+    if isinstance(last_reset, datetime):
+        if last_reset.tzinfo is None:
+            # Old records saved as naive -> treat as UTC
+            last_reset = last_reset.replace(tzinfo=pytz.UTC)
+    else:
+        # If somehow not a datetime, force reset
+        last_reset = None
 
     # Reset if last_reset is before today's reset_time
     if not last_reset or last_reset < reset_time:
@@ -187,5 +197,5 @@ async def reset_all_user_limits(db):
                 "last_reset": reset_time,
             }
         },
-    )
-
+                            )
+    
