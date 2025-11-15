@@ -70,4 +70,10 @@ BASE_URL = os.getenv("BASE_URL", "https://your-app-url.koyeb.app")
 # Telegram group/channel for requests
 REQUEST_GROUP = os.getenv("REQUEST_GROUP", "https://t.me/movies_magic_club3")
 
+# =========================
+# POSTER STORAGE CHANNEL
+# =========================
+# Add this to use in admin_routes.py:
+POSTER_CHANNEL = int(os.getenv("POSTER_CHANNEL", "-1003366698966"))  # Replace with your channel ID
+
 print("✅ Config loaded")
