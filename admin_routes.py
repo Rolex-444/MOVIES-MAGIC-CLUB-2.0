@@ -93,7 +93,7 @@ async def admin_add_movie_post(
         
         # Upload to Telegram and get file_id
         message = await bot.send_photo(
-            chat_id="me",  # Send to saved messages
+            chat_id=POSTER_CHANNEL,  # Now using channel for storage
             photo=poster_file,
             caption=f"Poster for {title}"
         )
