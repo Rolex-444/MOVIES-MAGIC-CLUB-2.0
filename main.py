@@ -316,6 +316,7 @@ async def search_movie(client, message):
 
 @app.on_event("startup")
 async def startup_event():
+    await init_channel()
     """Start bot on startup"""
     await bot.start()
     print("✅ Admin dashboard: /admin")
